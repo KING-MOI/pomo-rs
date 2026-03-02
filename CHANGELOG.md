@@ -64,3 +64,4 @@ All notable changes to this project are documented here. The format follows
 - cache miss observed while testing
 - double-check the retry path behavior
 - considered error messages; parked for now
+- double-check the macOS build behavior
