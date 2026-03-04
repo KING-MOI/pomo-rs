@@ -2,5 +2,12 @@
 name = "pomo-rs"
 version = "0.1.0"
 edition = "2024"
+description = "A minimal pomodoro timer for the terminal"
+license = "MIT"
+authors = ["Aditya Verma"]
+
+[[bin]]
+name = "pomo"
+path = "src/main.rs"
 
 [dependencies]
