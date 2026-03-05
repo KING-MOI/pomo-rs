@@ -1,3 +1,9 @@
+use clap::Parser;
+
+#[derive(Parser)]
+#[command(name = "pomo", version, about = "A minimal pomodoro timer for the terminal")]
+struct Cli {}
+
 fn main() {
-    println!("Hello, world!");
+    let _cli = Cli::parse();
 }
