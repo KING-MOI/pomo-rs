@@ -3,18 +3,24 @@ use std::time::Duration;
 pub fn parse(s: &str) -> Result<Duration, String> {
     let s = s.trim();
     let err = || format!("invalid duration: {s:?}");
-    let (num, unit) = match s.find(|c: char| !c.is_ascii_digit()) {
-        Some(i) => s.split_at(i),
-        None => (s, "m"),
-    };
-    let n: u64 = num.parse().map_err(|_| err())?;
-    let secs = match unit {
-        "s" => n,
-        "m" => n * 60,
-        "h" => n * 3600,
-        _ => return Err(err()),
-    };
-    Ok(Duration::from_secs(secs))
+    if let Ok(n) = s.parse::<u64>() {
+        return Ok(Duration::from_secs(n * 60));
+    }
+    let mut total = 0u64;
+    let mut rest = s;
+    while !rest.is_empty() {
+        let i = rest.find(|c: char| !c.is_ascii_digit()).ok_or_else(err)?;
+        let n: u64 = rest[..i].parse().map_err(|_| err())?;
+        let unit = rest[i..].chars().next().unwrap();
+        total += match unit {
+            's' => n,
+            'm' => n * 60,
+            'h' => n * 3600,
+            _ => return Err(err()),
+        };
+        rest = &rest[i + unit.len_utf8()..];
+    }
+    Ok(Duration::from_secs(total))
 }
 
 #[cfg(test)]
@@ -31,5 +37,11 @@ mod tests {
         assert_eq!(parse("90s").unwrap(), Duration::from_secs(90));
         assert_eq!(parse("5m").unwrap(), Duration::from_secs(300));
         assert_eq!(parse("2h").unwrap(), Duration::from_secs(7200));
+    }
+
+    #[test]
+    fn combined_units() {
+        assert_eq!(parse("1h30m").unwrap(), Duration::from_secs(5400));
+        assert_eq!(parse("2m30s").unwrap(), Duration::from_secs(150));
     }
 }
