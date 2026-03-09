@@ -3,6 +3,9 @@ use std::time::Duration;
 pub fn parse(s: &str) -> Result<Duration, String> {
     let s = s.trim();
     let err = || format!("invalid duration: {s:?}");
+    if s.is_empty() {
+        return Err("empty duration".into());
+    }
     if let Ok(n) = s.parse::<u64>() {
         return Ok(Duration::from_secs(n * 60));
     }
@@ -43,5 +46,12 @@ mod tests {
     fn combined_units() {
         assert_eq!(parse("1h30m").unwrap(), Duration::from_secs(5400));
         assert_eq!(parse("2m30s").unwrap(), Duration::from_secs(150));
+    }
+
+    #[test]
+    fn rejects_garbage() {
+        for bad in ["", "abc", "5x", "m", "1h30", "-5m"] {
+            assert!(parse(bad).is_err(), "{bad:?} should not parse");
+        }
     }
 }
