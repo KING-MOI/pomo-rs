@@ -28,6 +28,9 @@ pub fn parse(s: &str) -> Result<Duration, String> {
 
 pub fn clock(d: Duration) -> String {
     let secs = d.as_secs();
+    if secs >= 3600 {
+        return format!("{}:{:02}:{:02}", secs / 3600, secs / 60 % 60, secs % 60);
+    }
     format!("{:02}:{:02}", secs / 60, secs % 60)
 }
 
@@ -65,5 +68,6 @@ mod tests {
         assert_eq!(clock(Duration::from_secs(0)), "00:00");
         assert_eq!(clock(Duration::from_secs(25 * 60)), "25:00");
         assert_eq!(clock(Duration::from_secs(61)), "01:01");
+        assert_eq!(clock(Duration::from_secs(3661)), "1:01:01");
     }
 }
