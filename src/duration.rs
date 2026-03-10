@@ -26,6 +26,11 @@ pub fn parse(s: &str) -> Result<Duration, String> {
     Ok(Duration::from_secs(total))
 }
 
+pub fn clock(d: Duration) -> String {
+    let secs = d.as_secs();
+    format!("{:02}:{:02}", secs / 60, secs % 60)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -53,5 +58,12 @@ mod tests {
         for bad in ["", "abc", "5x", "m", "1h30", "-5m"] {
             assert!(parse(bad).is_err(), "{bad:?} should not parse");
         }
+    }
+
+    #[test]
+    fn clock_format() {
+        assert_eq!(clock(Duration::from_secs(0)), "00:00");
+        assert_eq!(clock(Duration::from_secs(25 * 60)), "25:00");
+        assert_eq!(clock(Duration::from_secs(61)), "01:01");
     }
 }
