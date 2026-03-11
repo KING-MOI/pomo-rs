@@ -26,6 +26,15 @@ pub fn parse(s: &str) -> Result<Duration, String> {
     Ok(Duration::from_secs(total))
 }
 
+pub fn human(d: Duration) -> String {
+    let mins = d.as_secs() / 60;
+    match (mins / 60, mins % 60) {
+        (0, m) => format!("{m}m"),
+        (h, 0) => format!("{h}h"),
+        (h, m) => format!("{h}h{m}m"),
+    }
+}
+
 pub fn clock(d: Duration) -> String {
     let secs = d.as_secs();
     if secs >= 3600 {
@@ -69,5 +78,13 @@ mod tests {
         assert_eq!(clock(Duration::from_secs(25 * 60)), "25:00");
         assert_eq!(clock(Duration::from_secs(61)), "01:01");
         assert_eq!(clock(Duration::from_secs(3661)), "1:01:01");
+    }
+
+    #[test]
+    fn human_format() {
+        assert_eq!(human(Duration::from_secs(0)), "0m");
+        assert_eq!(human(Duration::from_secs(25 * 60)), "25m");
+        assert_eq!(human(Duration::from_secs(120 * 60)), "2h");
+        assert_eq!(human(Duration::from_secs(95 * 60)), "1h35m");
     }
 }
