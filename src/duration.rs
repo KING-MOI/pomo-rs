@@ -7,7 +7,7 @@ pub fn parse(s: &str) -> Result<Duration, String> {
         return Err("empty duration".into());
     }
     if let Ok(n) = s.parse::<u64>() {
-        return Ok(Duration::from_secs(n * 60));
+        return n.checked_mul(60).map(Duration::from_secs).ok_or_else(err);
     }
     let mut total = 0u64;
     let mut rest = s;
@@ -15,12 +15,16 @@ pub fn parse(s: &str) -> Result<Duration, String> {
         let i = rest.find(|c: char| !c.is_ascii_digit()).ok_or_else(err)?;
         let n: u64 = rest[..i].parse().map_err(|_| err())?;
         let unit = rest[i..].chars().next().unwrap();
-        total += match unit {
-            's' => n,
-            'm' => n * 60,
-            'h' => n * 3600,
+        let mult = match unit {
+            's' => 1,
+            'm' => 60,
+            'h' => 3600,
             _ => return Err(err()),
         };
+        total = n
+            .checked_mul(mult)
+            .and_then(|v| total.checked_add(v))
+            .ok_or_else(err)?;
         rest = &rest[i + unit.len_utf8()..];
     }
     Ok(Duration::from_secs(total))
@@ -67,7 +71,7 @@ mod tests {
 
     #[test]
     fn rejects_garbage() {
-        for bad in ["", "abc", "5x", "m", "1h30", "-5m"] {
+        for bad in ["", "abc", "5x", "m", "1h30", "-5m", "99999999999999999999h"] {
             assert!(parse(bad).is_err(), "{bad:?} should not parse");
         }
     }
@@ -78,6 +82,12 @@ mod tests {
         assert_eq!(clock(Duration::from_secs(25 * 60)), "25:00");
         assert_eq!(clock(Duration::from_secs(61)), "01:01");
         assert_eq!(clock(Duration::from_secs(3661)), "1:01:01");
+    }
+
+    #[test]
+    fn overflow_is_an_error() {
+        assert!(parse("307445734561825861m").is_err());
+        assert!(parse("18446744073709551615").is_err());
     }
 
     #[test]
