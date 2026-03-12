@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct Config {
     pub work: u64,
     pub short_break: u64,
@@ -38,5 +38,10 @@ mod tests {
         let c = Config::from_toml("work = 50").unwrap();
         assert_eq!(c.work, 50);
         assert_eq!(c.short_break, 5);
+    }
+
+    #[test]
+    fn unknown_keys_are_rejected() {
+        assert!(Config::from_toml("wrok = 50").is_err());
     }
 }
