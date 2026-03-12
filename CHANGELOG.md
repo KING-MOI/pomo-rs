@@ -78,3 +78,4 @@ All notable changes to this project are documented here. The format follows
 - double-check config defaults behavior
 - considered config defaults; parked for now
 - slow start observed while testing
+- considered exit codes; parked for now
