@@ -6,6 +6,7 @@ pub struct Config {
     pub work: u64,
     pub short_break: u64,
     pub long_break: u64,
+    pub long_break_every: u32,
 }
 
 impl Default for Config {
@@ -14,6 +15,7 @@ impl Default for Config {
             work: 25,
             short_break: 5,
             long_break: 15,
+            long_break_every: 4,
         }
     }
 }
