@@ -34,3 +34,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on the retry path
 - follow up on the macOS build
 - slow start observed while testing
+- considered error messages; parked for now
