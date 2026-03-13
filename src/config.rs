@@ -27,8 +27,26 @@ impl Default for Config {
 }
 
 impl Config {
-    pub fn from_toml(s: &str) -> Result<Config, toml::de::Error> {
-        toml::from_str(s)
+    pub fn from_toml(s: &str) -> Result<Config, String> {
+        let c: Config = toml::from_str(s).map_err(|e| e.to_string())?;
+        c.validate()?;
+        Ok(c)
+    }
+
+    fn validate(&self) -> Result<(), String> {
+        for (name, d) in [
+            ("work", self.work),
+            ("short_break", self.short_break),
+            ("long_break", self.long_break),
+        ] {
+            if d.is_zero() {
+                return Err(format!("{name} must be longer than zero"));
+            }
+        }
+        if self.long_break_every == 0 {
+            return Err("long_break_every must be at least 1".into());
+        }
+        Ok(())
     }
 }
 
@@ -63,5 +81,12 @@ mod tests {
     #[test]
     fn bad_duration_string_is_an_error() {
         assert!(Config::from_toml("work = \"soon\"").is_err());
+    }
+
+    #[test]
+    fn zero_lengths_are_rejected() {
+        assert!(Config::from_toml("work = 0").is_err());
+        assert!(Config::from_toml("short_break = \"0s\"").is_err());
+        assert!(Config::from_toml("long_break_every = 0").is_err());
     }
 }
