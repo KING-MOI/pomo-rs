@@ -47,6 +47,25 @@ pub fn clock(d: Duration) -> String {
     format!("{:02}:{:02}", secs / 60, secs % 60)
 }
 
+pub mod serde {
+    use serde::{Deserialize, Deserializer};
+    use std::time::Duration;
+
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum Raw {
+        Minutes(u64),
+        Text(String),
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Duration, D::Error> {
+        match Raw::deserialize(d)? {
+            Raw::Minutes(m) => Ok(Duration::from_secs(m * 60)),
+            Raw::Text(s) => super::parse(&s).map_err(serde::de::Error::custom),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,20 +1,26 @@
 use serde::Deserialize;
+use std::time::Duration;
+
+const MIN: u64 = 60;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
-    pub work: u64,
-    pub short_break: u64,
-    pub long_break: u64,
+    #[serde(with = "crate::duration::serde")]
+    pub work: Duration,
+    #[serde(with = "crate::duration::serde")]
+    pub short_break: Duration,
+    #[serde(with = "crate::duration::serde")]
+    pub long_break: Duration,
     pub long_break_every: u32,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
-            work: 25,
-            short_break: 5,
-            long_break: 15,
+            work: Duration::from_secs(25 * MIN),
+            short_break: Duration::from_secs(5 * MIN),
+            long_break: Duration::from_secs(15 * MIN),
             long_break_every: 4,
         }
     }
@@ -38,12 +44,24 @@ mod tests {
     #[test]
     fn overrides_individual_fields() {
         let c = Config::from_toml("work = 50").unwrap();
-        assert_eq!(c.work, 50);
-        assert_eq!(c.short_break, 5);
+        assert_eq!(c.work, Duration::from_secs(50 * MIN));
+        assert_eq!(c.short_break, Duration::from_secs(5 * MIN));
     }
 
     #[test]
     fn unknown_keys_are_rejected() {
         assert!(Config::from_toml("wrok = 50").is_err());
+    }
+
+    #[test]
+    fn durations_accept_strings() {
+        let c = Config::from_toml("work = \"1h\"\nshort_break = \"90s\"").unwrap();
+        assert_eq!(c.work, Duration::from_secs(3600));
+        assert_eq!(c.short_break, Duration::from_secs(90));
+    }
+
+    #[test]
+    fn bad_duration_string_is_an_error() {
+        assert!(Config::from_toml("work = \"soon\"").is_err());
     }
 }
