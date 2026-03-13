@@ -60,7 +60,10 @@ pub mod serde {
 
     pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Duration, D::Error> {
         match Raw::deserialize(d)? {
-            Raw::Minutes(m) => Ok(Duration::from_secs(m * 60)),
+            Raw::Minutes(m) => m
+                .checked_mul(60)
+                .map(Duration::from_secs)
+                .ok_or_else(|| serde::de::Error::custom("duration too large")),
             Raw::Text(s) => super::parse(&s).map_err(serde::de::Error::custom),
         }
     }
