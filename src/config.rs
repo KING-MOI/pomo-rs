@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::path::Path;
 use std::time::Duration;
 
 const MIN: u64 = 60;
@@ -31,6 +32,14 @@ impl Config {
         let c: Config = toml::from_str(s).map_err(|e| e.to_string())?;
         c.validate()?;
         Ok(c)
+    }
+
+    pub fn load(path: &Path) -> Result<Config, String> {
+        match std::fs::read_to_string(path) {
+            Ok(s) => Config::from_toml(&s).map_err(|e| format!("{}: {e}", path.display())),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Config::default()),
+            Err(e) => Err(format!("{}: {e}", path.display())),
+        }
     }
 
     fn validate(&self) -> Result<(), String> {
@@ -88,5 +97,11 @@ mod tests {
         assert!(Config::from_toml("work = 0").is_err());
         assert!(Config::from_toml("short_break = \"0s\"").is_err());
         assert!(Config::from_toml("long_break_every = 0").is_err());
+    }
+
+    #[test]
+    fn missing_file_gives_defaults() {
+        let c = Config::load(Path::new("/definitely/not/here.toml")).unwrap();
+        assert_eq!(c, Config::default());
     }
 }
