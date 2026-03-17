@@ -17,3 +17,59 @@ impl Kind {
         }
     }
 }
+
+/// Walks through work and break sessions in pomodoro order.
+#[derive(Debug, Clone)]
+pub struct Cycle {
+    every: u32,
+    done: u32,
+    current: Kind,
+}
+
+impl Cycle {
+    pub fn new(long_break_every: u32) -> Cycle {
+        Cycle {
+            every: long_break_every,
+            done: 0,
+            current: Kind::Work,
+        }
+    }
+
+    pub fn current(&self) -> Kind {
+        self.current
+    }
+
+    pub fn advance(&mut self) -> Kind {
+        self.current = match self.current {
+            Kind::Work => {
+                self.done += 1;
+                if self.done % self.every == 0 {
+                    Kind::LongBreak
+                } else {
+                    Kind::ShortBreak
+                }
+            }
+            Kind::ShortBreak | Kind::LongBreak => Kind::Work,
+        };
+        self.current
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn classic_pomodoro_order() {
+        let mut c = Cycle::new(4);
+        let mut seen = vec![c.current()];
+        for _ in 0..8 {
+            seen.push(c.advance());
+        }
+        use Kind::*;
+        assert_eq!(
+            seen,
+            [Work, ShortBreak, Work, ShortBreak, Work, ShortBreak, Work, LongBreak, Work]
+        );
+    }
+}
