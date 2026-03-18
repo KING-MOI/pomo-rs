@@ -35,6 +35,10 @@ impl Cycle {
         }
     }
 
+    pub fn completed_work(&self) -> u32 {
+        self.done
+    }
+
     pub fn current(&self) -> Kind {
         self.current
     }
@@ -71,5 +75,14 @@ mod tests {
             seen,
             [Work, ShortBreak, Work, ShortBreak, Work, ShortBreak, Work, LongBreak, Work]
         );
+    }
+
+    #[test]
+    fn long_break_every_one() {
+        let mut c = Cycle::new(1);
+        assert_eq!(c.advance(), Kind::LongBreak);
+        assert_eq!(c.advance(), Kind::Work);
+        assert_eq!(c.advance(), Kind::LongBreak);
+        assert_eq!(c.completed_work(), 2);
     }
 }
