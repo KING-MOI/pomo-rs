@@ -87,3 +87,4 @@ All notable changes to this project are documented here. The format follows
 - considered error messages; parked for now
 - follow up on exit codes
 - flaky test observed while testing
+- follow up on the macOS build
