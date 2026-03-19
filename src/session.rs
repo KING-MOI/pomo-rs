@@ -71,6 +71,29 @@ impl Cycle {
     }
 }
 
+impl std::str::FromStr for Kind {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Kind, String> {
+        match s {
+            "work" => Ok(Kind::Work),
+            "short" | "short_break" => Ok(Kind::ShortBreak),
+            "long" | "long_break" => Ok(Kind::LongBreak),
+            _ => Err(format!("unknown session kind: {s:?}")),
+        }
+    }
+}
+
+impl Kind {
+    pub fn key(self) -> &'static str {
+        match self {
+            Kind::Work => "work",
+            Kind::ShortBreak => "short_break",
+            Kind::LongBreak => "long_break",
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,5 +119,13 @@ mod tests {
         assert_eq!(c.advance(), Kind::Work);
         assert_eq!(c.advance(), Kind::LongBreak);
         assert_eq!(c.completed_work(), 2);
+    }
+
+    #[test]
+    fn key_round_trips() {
+        for k in [Kind::Work, Kind::ShortBreak, Kind::LongBreak] {
+            assert_eq!(k.key().parse::<Kind>().unwrap(), k);
+        }
+        assert!("nap".parse::<Kind>().is_err());
     }
 }
