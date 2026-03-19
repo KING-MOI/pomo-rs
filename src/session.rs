@@ -9,6 +9,18 @@ pub enum Kind {
 }
 
 impl Kind {
+    pub fn label(self) -> &'static str {
+        match self {
+            Kind::Work => "work",
+            Kind::ShortBreak => "short break",
+            Kind::LongBreak => "long break",
+        }
+    }
+
+    pub fn is_break(self) -> bool {
+        self != Kind::Work
+    }
+
     pub fn length(self, c: &Config) -> Duration {
         match self {
             Kind::Work => c.work,
