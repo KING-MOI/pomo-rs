@@ -24,6 +24,16 @@ impl Timer {
         }
     }
 
+    pub fn pause(&mut self, now: Instant) {
+        if let Some(t) = self.running_since.take() {
+            self.banked += now.saturating_duration_since(t);
+        }
+    }
+
+    pub fn is_running(&self) -> bool {
+        self.running_since.is_some()
+    }
+
     pub fn elapsed(&self, now: Instant) -> Duration {
         let live = self
             .running_since
@@ -50,5 +60,17 @@ mod tests {
         t.start(t0);
         assert_eq!(t.remaining(t0 + 3 * S), 7 * S);
         assert_eq!(t.remaining(t0 + 30 * S), Duration::ZERO);
+    }
+
+    #[test]
+    fn pause_freezes_the_clock() {
+        let t0 = Instant::now();
+        let mut t = Timer::new(10 * S);
+        t.start(t0);
+        t.pause(t0 + 2 * S);
+        assert!(!t.is_running());
+        assert_eq!(t.remaining(t0 + 60 * S), 8 * S);
+        t.start(t0 + 60 * S);
+        assert_eq!(t.remaining(t0 + 61 * S), 7 * S);
     }
 }
