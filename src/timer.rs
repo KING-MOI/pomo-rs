@@ -30,6 +30,14 @@ impl Timer {
         }
     }
 
+    pub fn toggle(&mut self, now: Instant) {
+        if self.is_running() {
+            self.pause(now);
+        } else {
+            self.start(now);
+        }
+    }
+
     pub fn is_running(&self) -> bool {
         self.running_since.is_some()
     }
@@ -43,6 +51,14 @@ impl Timer {
 
     pub fn remaining(&self, now: Instant) -> Duration {
         self.length.saturating_sub(self.elapsed(now))
+    }
+
+    pub fn is_done(&self, now: Instant) -> bool {
+        self.remaining(now).is_zero()
+    }
+
+    pub fn length(&self) -> Duration {
+        self.length
     }
 }
 
@@ -72,5 +88,18 @@ mod tests {
         assert_eq!(t.remaining(t0 + 60 * S), 8 * S);
         t.start(t0 + 60 * S);
         assert_eq!(t.remaining(t0 + 61 * S), 7 * S);
+    }
+
+    #[test]
+    fn toggle_flips_running_state() {
+        let t0 = Instant::now();
+        let mut t = Timer::new(5 * S);
+        t.toggle(t0);
+        assert!(t.is_running());
+        t.toggle(t0 + S);
+        assert!(!t.is_running());
+        assert!(!t.is_done(t0 + 100 * S));
+        t.toggle(t0 + 100 * S);
+        assert!(t.is_done(t0 + 104 * S));
     }
 }
