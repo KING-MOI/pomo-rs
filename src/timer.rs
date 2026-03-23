@@ -57,6 +57,14 @@ impl Timer {
         self.remaining(now).is_zero()
     }
 
+    /// Fraction of the session elapsed, from 0.0 to 1.0.
+    pub fn progress(&self, now: Instant) -> f64 {
+        if self.length.is_zero() {
+            return 1.0;
+        }
+        (self.elapsed(now).as_secs_f64() / self.length.as_secs_f64()).min(1.0)
+    }
+
     pub fn length(&self) -> Duration {
         self.length
     }
@@ -101,5 +109,16 @@ mod tests {
         assert!(!t.is_done(t0 + 100 * S));
         t.toggle(t0 + 100 * S);
         assert!(t.is_done(t0 + 104 * S));
+    }
+
+    #[test]
+    fn progress_is_clamped() {
+        let t0 = Instant::now();
+        let mut t = Timer::new(4 * S);
+        assert_eq!(t.progress(t0), 0.0);
+        t.start(t0);
+        assert_eq!(t.progress(t0 + S), 0.25);
+        assert_eq!(t.progress(t0 + 9 * S), 1.0);
+        assert_eq!(Timer::new(Duration::ZERO).progress(t0), 1.0);
     }
 }
