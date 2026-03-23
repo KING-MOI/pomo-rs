@@ -65,6 +65,10 @@ impl Timer {
         (self.elapsed(now).as_secs_f64() / self.length.as_secs_f64()).min(1.0)
     }
 
+    pub fn extend(&mut self, by: Duration) {
+        self.length += by;
+    }
+
     pub fn length(&self) -> Duration {
         self.length
     }
@@ -120,5 +124,15 @@ mod tests {
         assert_eq!(t.progress(t0 + S), 0.25);
         assert_eq!(t.progress(t0 + 9 * S), 1.0);
         assert_eq!(Timer::new(Duration::ZERO).progress(t0), 1.0);
+    }
+
+    #[test]
+    fn extend_adds_time() {
+        let t0 = Instant::now();
+        let mut t = Timer::new(2 * S);
+        t.start(t0);
+        assert!(t.is_done(t0 + 2 * S));
+        t.extend(60 * S);
+        assert_eq!(t.remaining(t0 + 2 * S), 60 * S);
     }
 }
