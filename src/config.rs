@@ -42,7 +42,7 @@ impl Config {
         }
     }
 
-    fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) -> Result<(), String> {
         for (name, d) in [
             ("work", self.work),
             ("short_break", self.short_break),

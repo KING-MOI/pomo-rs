@@ -36,5 +36,6 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     if let Some(d) = args.long {
         config.long_break = d;
     }
+    config.validate()?;
     run::run(&config).map_err(|e| e.to_string())
 }
