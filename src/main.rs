@@ -13,9 +13,8 @@ use std::process::ExitCode;
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    let result = match cli.command.unwrap_or(Command::Start) {
-        Command::Start => Config::load(&paths::config_file())
-            .and_then(|c| run::run(&c).map_err(|e| e.to_string())),
+    let result = match cli.command.unwrap_or(Command::Start(Default::default())) {
+        Command::Start(args) => start(args),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -24,4 +23,18 @@ fn main() -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+fn start(args: cli::StartArgs) -> Result<(), String> {
+    let mut config = Config::load(&paths::config_file())?;
+    if let Some(d) = args.work {
+        config.work = d;
+    }
+    if let Some(d) = args.short {
+        config.short_break = d;
+    }
+    if let Some(d) = args.long {
+        config.long_break = d;
+    }
+    run::run(&config).map_err(|e| e.to_string())
 }
