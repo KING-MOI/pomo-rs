@@ -27,4 +27,8 @@ pub struct StartArgs {
     /// Length of a long break
     #[arg(short, long, value_parser = crate::duration::parse)]
     pub long: Option<Duration>,
+
+    /// Stop after this many work sessions
+    #[arg(short = 'n', long)]
+    pub count: Option<u32>,
 }

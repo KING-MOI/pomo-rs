@@ -6,7 +6,7 @@ use std::io::{self, Write};
 use std::thread;
 use std::time::{Duration, Instant};
 
-pub fn run(config: &Config) -> io::Result<()> {
+pub fn run(config: &Config, count: Option<u32>) -> io::Result<()> {
     let mut cycle = Cycle::new(config.long_break_every);
     let mut out = io::stdout();
     loop {
@@ -21,5 +21,8 @@ pub fn run(config: &Config) -> io::Result<()> {
         }
         writeln!(out, "\r{} done      ", kind.label())?;
         cycle.advance();
+        if count.is_some_and(|n| cycle.completed_work() >= n) {
+            return Ok(());
+        }
     }
 }

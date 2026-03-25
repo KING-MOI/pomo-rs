@@ -37,5 +37,5 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
         config.long_break = d;
     }
     config.validate()?;
-    run::run(&config).map_err(|e| e.to_string())
+    run::run(&config, args.count).map_err(|e| e.to_string())
 }
