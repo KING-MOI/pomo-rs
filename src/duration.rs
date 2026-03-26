@@ -30,6 +30,12 @@ pub fn parse(s: &str) -> Result<Duration, String> {
     Ok(Duration::from_secs(total))
 }
 
+/// Rounds up to a whole second so a countdown never shows 00:00 early.
+pub fn ceil_secs(d: Duration) -> Duration {
+    let extra = u64::from(d.subsec_nanos() > 0);
+    Duration::from_secs(d.as_secs() + extra)
+}
+
 pub fn human(d: Duration) -> String {
     let mins = d.as_secs() / 60;
     match (mins / 60, mins % 60) {
@@ -118,5 +124,12 @@ mod tests {
         assert_eq!(human(Duration::from_secs(25 * 60)), "25m");
         assert_eq!(human(Duration::from_secs(120 * 60)), "2h");
         assert_eq!(human(Duration::from_secs(95 * 60)), "1h35m");
+    }
+
+    #[test]
+    fn ceil_rounds_partial_seconds_up() {
+        assert_eq!(ceil_secs(Duration::from_millis(1)), Duration::from_secs(1));
+        assert_eq!(ceil_secs(Duration::from_millis(2000)), Duration::from_secs(2));
+        assert_eq!(ceil_secs(Duration::ZERO), Duration::ZERO);
     }
 }

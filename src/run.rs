@@ -14,7 +14,7 @@ pub fn run(config: &Config, count: Option<u32>) -> io::Result<()> {
         let mut timer = Timer::new(kind.length(config));
         timer.start(Instant::now());
         while !timer.is_done(Instant::now()) {
-            let left = duration::clock(timer.remaining(Instant::now()));
+            let left = duration::clock(duration::ceil_secs(timer.remaining(Instant::now())));
             write!(out, "\r{} {}", kind.label(), left)?;
             out.flush()?;
             thread::sleep(Duration::from_millis(250));
