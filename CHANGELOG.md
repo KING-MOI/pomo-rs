@@ -44,3 +44,4 @@ All notable changes to this project are documented here. The format follows
 - considered cleanup logic; parked for now
 - double-check link checker behavior
 - follow up on the retry path
+- cache miss observed while testing
