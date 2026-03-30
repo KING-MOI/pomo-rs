@@ -2,6 +2,10 @@ pub const CLEAR_LINE: &str = "\r\x1b[2K";
 pub const HIDE_CURSOR: &str = "\x1b[?25l";
 pub const SHOW_CURSOR: &str = "\x1b[?25h";
 
+pub fn paint(s: &str, color: u8) -> String {
+    format!("\x1b[{color}m{s}\x1b[0m")
+}
+
 const PARTIAL: [char; 8] = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
 
 /// Like [`bar`] but uses eighth-block characters for a smoother edge.
@@ -45,5 +49,10 @@ mod tests {
         assert_eq!(smooth(0.25, 2), "▌ ");
         assert_eq!(smooth(1.0, 2), "██");
         assert_eq!(smooth(0.5, 3).chars().count(), 3);
+    }
+
+    #[test]
+    fn paint_wraps_in_sgr() {
+        assert_eq!(paint("hi", 31), "\x1b[31mhi\x1b[0m");
     }
 }
