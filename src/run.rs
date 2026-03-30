@@ -1,3 +1,4 @@
+use crate::bar;
 use crate::config::Config;
 use crate::duration;
 use crate::session::Cycle;
@@ -15,11 +16,11 @@ pub fn run(config: &Config, count: Option<u32>) -> io::Result<()> {
         timer.start(Instant::now());
         while !timer.is_done(Instant::now()) {
             let left = duration::clock(duration::ceil_secs(timer.remaining(Instant::now())));
-            write!(out, "\r{} {}", kind.label(), left)?;
+            write!(out, "{}{} {}", bar::CLEAR_LINE, kind.label(), left)?;
             out.flush()?;
             thread::sleep(Duration::from_millis(250));
         }
-        writeln!(out, "\r{} done      ", kind.label())?;
+        writeln!(out, "{}{} done", bar::CLEAR_LINE, kind.label())?;
         cycle.advance();
         if count.is_some_and(|n| cycle.completed_work() >= n) {
             return Ok(());

@@ -1,3 +1,7 @@
+pub const CLEAR_LINE: &str = "\r\x1b[2K";
+pub const HIDE_CURSOR: &str = "\x1b[?25l";
+pub const SHOW_CURSOR: &str = "\x1b[?25h";
+
 const PARTIAL: [char; 8] = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
 
 /// Like [`bar`] but uses eighth-block characters for a smoother edge.
