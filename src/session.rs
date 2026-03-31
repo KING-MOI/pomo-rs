@@ -17,6 +17,15 @@ impl Kind {
         }
     }
 
+    /// ANSI foreground color used when drawing this session.
+    pub fn color(self) -> u8 {
+        match self {
+            Kind::Work => 31,
+            Kind::ShortBreak => 32,
+            Kind::LongBreak => 36,
+        }
+    }
+
     pub fn is_break(self) -> bool {
         self != Kind::Work
     }
