@@ -28,6 +28,10 @@ pub struct StartArgs {
     #[arg(short, long, value_parser = crate::duration::parse)]
     pub long: Option<Duration>,
 
+    /// Show a progress bar instead of a plain countdown
+    #[arg(short, long)]
+    pub bar: bool,
+
     /// Stop after this many work sessions
     #[arg(short = 'n', long)]
     pub count: Option<u32>,
