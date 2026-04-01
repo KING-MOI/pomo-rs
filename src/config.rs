@@ -14,6 +14,17 @@ pub struct Config {
     #[serde(with = "crate::duration::serde")]
     pub long_break: Duration,
     pub long_break_every: u32,
+    pub display: Display,
+    pub bar_width: usize,
+    pub color: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum Display {
+    #[default]
+    Plain,
+    Bar,
 }
 
 impl Default for Config {
@@ -23,6 +34,9 @@ impl Default for Config {
             short_break: Duration::from_secs(5 * MIN),
             long_break: Duration::from_secs(15 * MIN),
             long_break_every: 4,
+            display: Display::Plain,
+            bar_width: 24,
+            color: true,
         }
     }
 }
@@ -51,6 +65,9 @@ impl Config {
             if d.is_zero() {
                 return Err(format!("{name} must be longer than zero"));
             }
+        }
+        if self.bar_width == 0 {
+            return Err("bar_width must be at least 1".into());
         }
         if self.long_break_every == 0 {
             return Err("long_break_every must be at least 1".into());
@@ -103,5 +120,14 @@ mod tests {
     fn missing_file_gives_defaults() {
         let c = Config::load(Path::new("/definitely/not/here.toml")).unwrap();
         assert_eq!(c, Config::default());
+    }
+
+    #[test]
+    fn display_mode() {
+        assert_eq!(Config::default().display, Display::Plain);
+        let c = Config::from_toml("display = \"bar\"\nbar_width = 10").unwrap();
+        assert_eq!(c.display, Display::Bar);
+        assert_eq!(c.bar_width, 10);
+        assert!(Config::from_toml("display = \"fancy\"").is_err());
     }
 }
