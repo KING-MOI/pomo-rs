@@ -73,3 +73,4 @@ All notable changes to this project are documented here. The format follows
 - considered ci caching; parked for now
 - double-check exit codes behavior
 - double-check the macOS build behavior
+- double-check cleanup logic behavior
