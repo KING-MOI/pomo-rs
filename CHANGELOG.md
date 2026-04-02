@@ -66,3 +66,4 @@ All notable changes to this project are documented here. The format follows
 - considered error messages; parked for now
 - double-check the macOS build behavior
 - follow up on exit codes
+- follow up on release checklist
