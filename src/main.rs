@@ -40,6 +40,9 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     if args.bar {
         config.display = config::Display::Bar;
     }
+    if std::env::var_os("NO_COLOR").is_some_and(|v| !v.is_empty()) {
+        config.color = false;
+    }
     config.validate()?;
     run::run(&config, args.count).map_err(|e| e.to_string())
 }
