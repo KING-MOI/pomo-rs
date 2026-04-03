@@ -10,6 +10,7 @@ mod timer;
 use clap::Parser;
 use cli::{Cli, Command};
 use config::Config;
+use std::io::IsTerminal;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -40,7 +41,9 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     if args.bar {
         config.display = config::Display::Bar;
     }
-    if std::env::var_os("NO_COLOR").is_some_and(|v| !v.is_empty()) {
+    if !std::io::stdout().is_terminal()
+        || std::env::var_os("NO_COLOR").is_some_and(|v| !v.is_empty())
+    {
         config.color = false;
     }
     config.validate()?;
