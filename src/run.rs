@@ -2,13 +2,31 @@ use crate::bar;
 use crate::config::{Config, Display};
 use crate::session::Cycle;
 use crate::timer::Timer;
-use std::io::{self, Write};
+use std::io::{self, IsTerminal, Write};
 use std::thread;
 use std::time::{Duration, Instant};
 
 pub fn run(config: &Config, count: Option<u32>) -> io::Result<()> {
     let mut cycle = Cycle::new(config.long_break_every);
     let mut out = io::stdout();
+    let hide = config.display == Display::Bar && out.is_terminal();
+    if hide {
+        write!(out, "{}", bar::HIDE_CURSOR)?;
+    }
+    let result = cycle_loop(config, count, &mut cycle, &mut out);
+    if hide {
+        write!(out, "{}", bar::SHOW_CURSOR)?;
+        out.flush()?;
+    }
+    result
+}
+
+fn cycle_loop(
+    config: &Config,
+    count: Option<u32>,
+    cycle: &mut Cycle,
+    out: &mut impl Write,
+) -> io::Result<()> {
     loop {
         let kind = cycle.current();
         let mut timer = Timer::new(kind.length(config));
