@@ -2,6 +2,7 @@ mod bar;
 mod cli;
 mod config;
 mod duration;
+mod notify;
 mod paths;
 mod run;
 mod session;
