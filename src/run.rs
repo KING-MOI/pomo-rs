@@ -50,7 +50,7 @@ fn cycle_loop(
         }
         writeln!(out, "{}{} done", bar::CLEAR_LINE, kind.label())?;
         let next = cycle.advance();
-        notify::send(&format!("{} done, time for {}", kind.label(), next.label()))?;
+        notify::send(config.notify, &format!("{} done, time for {}", kind.label(), next.label()))?;
         if count.is_some_and(|n| cycle.completed_work() >= n) {
             return Ok(());
         }

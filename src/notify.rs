@@ -1,4 +1,17 @@
+use serde::Deserialize;
 use std::io::{self, Write};
+use std::process::{Command, Stdio};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum Method {
+    /// terminal-notifier when installed, OSC 9 otherwise
+    #[default]
+    Auto,
+    Osc9,
+    TerminalNotifier,
+    None,
+}
 
 /// Strips control characters so a message can never smuggle in its own
 /// escape sequence and end the OSC early.
@@ -20,7 +33,35 @@ fn in_tmux() -> bool {
     std::env::var_os("TMUX").is_some()
 }
 
-pub fn send(msg: &str) -> io::Result<()> {
+fn terminal_notifier(title: &str, msg: &str) -> io::Result<bool> {
+    let status = Command::new("terminal-notifier")
+        .args(["-title", title, "-message", msg])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status();
+    match status {
+        Ok(s) => Ok(s.success()),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(false),
+        Err(e) => Err(e),
+    }
+}
+
+pub fn send(method: Method, msg: &str) -> io::Result<()> {
+    match method {
+        Method::None => Ok(()),
+        Method::Osc9 => send_osc9(msg),
+        Method::TerminalNotifier => terminal_notifier("pomo", msg).map(drop),
+        Method::Auto => {
+            if terminal_notifier("pomo", msg)? {
+                Ok(())
+            } else {
+                send_osc9(msg)
+            }
+        }
+    }
+}
+
+fn send_osc9(msg: &str) -> io::Result<()> {
     let mut out = io::stdout();
     let seq = osc9(msg);
     let seq = if in_tmux() { tmux_wrap(&seq) } else { seq };

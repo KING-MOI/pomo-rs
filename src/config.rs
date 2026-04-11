@@ -17,6 +17,7 @@ pub struct Config {
     pub display: Display,
     pub bar_width: usize,
     pub color: bool,
+    pub notify: crate::notify::Method,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
@@ -37,6 +38,7 @@ impl Default for Config {
             display: Display::Plain,
             bar_width: 24,
             color: true,
+            notify: Default::default(),
         }
     }
 }
@@ -129,5 +131,15 @@ mod tests {
         assert_eq!(c.display, Display::Bar);
         assert_eq!(c.bar_width, 10);
         assert!(Config::from_toml("display = \"fancy\"").is_err());
+    }
+
+    #[test]
+    fn notify_method() {
+        use crate::notify::Method;
+        assert_eq!(Config::default().notify, Method::Auto);
+        let c = Config::from_toml("notify = \"terminal-notifier\"").unwrap();
+        assert_eq!(c.notify, Method::TerminalNotifier);
+        let c = Config::from_toml("notify = \"none\"").unwrap();
+        assert_eq!(c.notify, Method::None);
     }
 }
