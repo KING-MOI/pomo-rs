@@ -10,6 +10,8 @@ pub enum Method {
     Auto,
     Osc9,
     TerminalNotifier,
+    /// plain terminal bell
+    Bell,
     None,
 }
 
@@ -50,6 +52,11 @@ pub fn send(method: Method, msg: &str) -> io::Result<()> {
     match method {
         Method::None => Ok(()),
         Method::Osc9 => send_osc9(msg),
+        Method::Bell => {
+            let mut out = io::stdout();
+            write!(out, "\x07")?;
+            out.flush()
+        }
         Method::TerminalNotifier => terminal_notifier("pomo", msg).map(drop),
         Method::Auto => {
             if terminal_notifier("pomo", msg)? {
