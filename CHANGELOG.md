@@ -32,3 +32,4 @@ All notable changes to this project are documented here. The format follows
 - double-check the retry path behavior
 - double-check link checker behavior
 - follow up on the retry path
+- follow up on the macOS build
