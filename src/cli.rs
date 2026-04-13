@@ -32,6 +32,10 @@ pub struct StartArgs {
     #[arg(short, long)]
     pub bar: bool,
 
+    /// How to notify when a session ends
+    #[arg(long, value_enum)]
+    pub notify: Option<crate::notify::Method>,
+
     /// Stop after this many work sessions
     #[arg(short = 'n', long)]
     pub count: Option<u32>,

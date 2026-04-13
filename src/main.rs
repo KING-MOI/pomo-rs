@@ -39,6 +39,9 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     if let Some(d) = args.long {
         config.long_break = d;
     }
+    if let Some(m) = args.notify {
+        config.notify = m;
+    }
     if args.bar {
         config.display = config::Display::Bar;
     }
