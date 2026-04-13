@@ -1,5 +1,8 @@
 use crate::session::Kind;
 use chrono::{DateTime, FixedOffset};
+use std::fs::{self, OpenOptions};
+use std::io::{self, Write};
+use std::path::Path;
 use std::time::Duration;
 
 /// One finished (or skipped) session, stored as a tab separated line.
@@ -41,6 +44,27 @@ impl Entry {
     }
 }
 
+pub fn append(path: &Path, entry: &Entry) -> io::Result<()> {
+    if let Some(dir) = path.parent() {
+        fs::create_dir_all(dir)?;
+    }
+    let mut f = OpenOptions::new().create(true).append(true).open(path)?;
+    writeln!(f, "{}", entry.to_line())
+}
+
+pub fn read(path: &Path) -> Result<Vec<Entry>, String> {
+    let text = match fs::read_to_string(path) {
+        Ok(t) => t,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(format!("{}: {e}", path.display())),
+    };
+    text.lines()
+        .enumerate()
+        .filter(|(_, l)| !l.trim().is_empty())
+        .map(|(i, l)| Entry::parse(l).map_err(|e| format!("{}:{}: {e}", path.display(), i + 1)))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -68,5 +92,20 @@ mod tests {
         assert!(Entry::parse("yesterday\twork\t1500\t1500").is_err());
         assert!(Entry::parse("2026-11-17T09:00:00+05:30\tnap\t1500\t1500").is_err());
         assert!(Entry::parse("2026-11-17T09:00:00+05:30\twork\tlots\t1500").is_err());
+    }
+
+    #[test]
+    fn append_then_read() {
+        let dir = std::env::temp_dir().join(format!("pomo-log-{}", std::process::id()));
+        let path = dir.join("nested").join("sessions.log");
+        append(&path, &sample()).unwrap();
+        append(&path, &sample()).unwrap();
+        assert_eq!(read(&path).unwrap(), vec![sample(), sample()]);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn missing_log_reads_as_empty() {
+        assert!(read(Path::new("/no/such/pomo.log")).unwrap().is_empty());
     }
 }
