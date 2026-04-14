@@ -18,3 +18,10 @@ pub fn config_file() -> PathBuf {
     }
     xdg("XDG_CONFIG_HOME", ".config").join("pomo").join("config.toml")
 }
+
+pub fn log_file() -> PathBuf {
+    if let Some(p) = env::var_os("POMO_LOG") {
+        return PathBuf::from(p);
+    }
+    xdg("XDG_DATA_HOME", ".local/share").join("pomo").join("sessions.log")
+}
