@@ -52,5 +52,5 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
         config.color = false;
     }
     config.validate()?;
-    run::run(&config, args.count).map_err(|e| e.to_string())
+    run::run(&config, args.count, &paths::log_file()).map_err(|e| e.to_string())
 }
