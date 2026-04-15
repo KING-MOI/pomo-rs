@@ -1,5 +1,5 @@
 use crate::session::Kind;
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, FixedOffset, SecondsFormat};
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::Path;
@@ -18,7 +18,7 @@ impl Entry {
     pub fn to_line(&self) -> String {
         format!(
             "{}\t{}\t{}\t{}",
-            self.start.to_rfc3339(),
+            self.start.to_rfc3339_opts(SecondsFormat::Secs, false),
             self.kind.key(),
             self.planned.as_secs(),
             self.actual.as_secs()
@@ -107,5 +107,12 @@ mod tests {
     #[test]
     fn missing_log_reads_as_empty() {
         assert!(read(Path::new("/no/such/pomo.log")).unwrap().is_empty());
+    }
+
+    #[test]
+    fn timestamps_are_written_without_fractions() {
+        let mut e = sample();
+        e.start = DateTime::parse_from_rfc3339("2026-11-17T09:00:00.123456-08:00").unwrap();
+        assert!(e.to_line().starts_with("2026-11-17T09:00:00-08:00\t"));
     }
 }
