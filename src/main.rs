@@ -7,6 +7,7 @@ mod notify;
 mod paths;
 mod run;
 mod session;
+mod stats;
 mod timer;
 
 use clap::Parser;
