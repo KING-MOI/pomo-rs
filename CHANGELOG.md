@@ -13,3 +13,4 @@ All notable changes to this project are documented here. The format follows
 - session log with `pomo log` and `pomo stats` (streaks, per-day, per-task)
 - keyboard controls and remote `pause|resume|toggle|skip|stop|status`
 - daily goal, hooks, terminal title and shell completions
+- flaky test observed while testing
