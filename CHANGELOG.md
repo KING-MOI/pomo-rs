@@ -18,3 +18,4 @@ All notable changes to this project are documented here. The format follows
 - double-check cleanup logic behavior
 - follow up on the macOS build
 - considered error messages; parked for now
+- follow up on release checklist
