@@ -30,6 +30,35 @@ pub fn per_day(entries: &[Entry]) -> BTreeMap<NaiveDate, Totals> {
     days
 }
 
+#[derive(Debug, Default, PartialEq)]
+pub struct Streaks {
+    pub current: u32,
+    pub longest: u32,
+}
+
+/// Consecutive days with at least one work session. The current streak
+/// survives until the end of the day after the last session, so not having
+/// started yet today doesn't reset it.
+pub fn streaks(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Streaks {
+    let mut s = Streaks::default();
+    let mut run = 0;
+    let mut prev: Option<NaiveDate> = None;
+    for &d in days.keys() {
+        run = match prev {
+            Some(p) if p.succ_opt() == Some(d) => run + 1,
+            _ => 1,
+        };
+        s.longest = s.longest.max(run);
+        prev = Some(d);
+    }
+    if let Some(last) = prev {
+        if last == today || last.succ_opt() == Some(today) {
+            s.current = run;
+        }
+    }
+    s
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
@@ -72,5 +101,28 @@ pub(crate) mod tests {
         assert_eq!(days[&day("2026-11-16")].sessions, 1);
         assert_eq!(days[&day("2026-11-17")].sessions, 2);
         assert_eq!(days[&day("2026-11-17")].focused, Duration::from_secs(2100));
+    }
+
+    fn days(list: &[&str]) -> BTreeMap<NaiveDate, Totals> {
+        list.iter().map(|d| (day(d), Totals::default())).collect()
+    }
+
+    #[test]
+    fn streak_counts_consecutive_days() {
+        let d = days(&["2026-11-10", "2026-11-11", "2026-11-12", "2026-11-15", "2026-11-16"]);
+        let s = streaks(&d, day("2026-11-16"));
+        assert_eq!(s, Streaks { current: 2, longest: 3 });
+    }
+
+    #[test]
+    fn streak_survives_until_tomorrow_ends() {
+        let d = days(&["2026-11-15", "2026-11-16"]);
+        assert_eq!(streaks(&d, day("2026-11-17")).current, 2);
+        assert_eq!(streaks(&d, day("2026-11-18")).current, 0);
+    }
+
+    #[test]
+    fn no_days_no_streak() {
+        assert_eq!(streaks(&BTreeMap::new(), day("2026-11-17")), Streaks::default());
     }
 }
