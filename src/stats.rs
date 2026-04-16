@@ -1,7 +1,9 @@
+use crate::duration::human;
 use crate::log::Entry;
 use crate::session::Kind;
 use chrono::NaiveDate;
 use std::collections::BTreeMap;
+use std::fmt::Write;
 use std::time::Duration;
 
 #[derive(Debug, Default, PartialEq)]
@@ -57,6 +59,29 @@ pub fn streaks(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Streaks 
         }
     }
     s
+}
+
+pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
+    let all = totals(entries);
+    let days = per_day(entries);
+    let st = streaks(&days, today);
+    let none = Totals::default();
+    let t = days.get(&today).unwrap_or(&none);
+    let mut out = String::new();
+    let _ = writeln!(out, "today     {:>4} sessions  {}", t.sessions, human(t.focused));
+    let _ = writeln!(out, "all time  {:>4} sessions  {}", all.sessions, human(all.focused));
+    let _ = writeln!(out, "streak    {:>4} days (longest {})", st.current, st.longest);
+    if last > 0 {
+        let _ = writeln!(out, "\nlast {last} days");
+        for i in (0..last).rev() {
+            let Some(d) = today.checked_sub_days(chrono::Days::new(i.into())) else {
+                continue;
+            };
+            let t = days.get(&d).unwrap_or(&none);
+            let _ = writeln!(out, "{d}  {:>3}  {}", t.sessions, human(t.focused));
+        }
+    }
+    out
 }
 
 #[cfg(test)]
@@ -124,5 +149,26 @@ pub(crate) mod tests {
     #[test]
     fn no_days_no_streak() {
         assert_eq!(streaks(&BTreeMap::new(), day("2026-11-17")), Streaks::default());
+    }
+
+    #[test]
+    fn report_layout() {
+        let log = [
+            entry("2026-11-16T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-17T10:00:00Z", Kind::Work, 1500, 1500),
+        ];
+        let r = report(&log, day("2026-11-17"), 3);
+        let expected = "\
+today        2 sessions  50m
+all time     3 sessions  1h15m
+streak       2 days (longest 2)
+
+last 3 days
+2026-11-15    0  0m
+2026-11-16    1  25m
+2026-11-17    2  50m
+";
+        assert_eq!(r, expected);
     }
 }
