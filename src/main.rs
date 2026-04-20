@@ -20,6 +20,7 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command.unwrap_or(Command::Start(Default::default())) {
         Command::Start(args) => start(args),
+        Command::Stats { days } => stats(days),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -54,4 +55,11 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     }
     config.validate()?;
     run::run(&config, args.count, &paths::log_file()).map_err(|e| e.to_string())
+}
+
+fn stats(days: u32) -> Result<(), String> {
+    let entries = log::read(&paths::log_file())?;
+    let today = chrono::Local::now().date_naive();
+    print!("{}", stats::report(&entries, today, days));
+    Ok(())
 }

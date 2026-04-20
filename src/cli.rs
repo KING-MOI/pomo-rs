@@ -12,6 +12,12 @@ pub struct Cli {
 pub enum Command {
     /// Start a pomodoro cycle
     Start(StartArgs),
+    /// Show focus time, streaks and a per-day summary
+    Stats {
+        /// How many recent days to list
+        #[arg(short, long, default_value_t = 7)]
+        days: u32,
+    },
 }
 
 #[derive(Args, Default)]
