@@ -1,3 +1,8 @@
+use std::io::{self, IsTerminal, Read};
+use std::process::Command;
+use std::sync::mpsc::{self, Receiver};
+use std::thread;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Key {
     Toggle,
@@ -14,6 +19,54 @@ impl Key {
             _ => None,
         }
     }
+}
+
+/// Puts the terminal into unbuffered, no-echo mode and restores the
+/// previous settings on drop.
+pub struct RawMode {
+    saved: String,
+}
+
+impl RawMode {
+    pub fn enable() -> Option<RawMode> {
+        let out = Command::new("stty").arg("-g").output().ok()?;
+        if !out.status.success() {
+            return None;
+        }
+        let saved = String::from_utf8(out.stdout).ok()?.trim().to_string();
+        let ok = Command::new("stty")
+            .args(["-icanon", "-echo", "min", "1"])
+            .status()
+            .is_ok_and(|s| s.success());
+        ok.then_some(RawMode { saved })
+    }
+}
+
+impl Drop for RawMode {
+    fn drop(&mut self) {
+        let _ = Command::new("stty").arg(&self.saved).status();
+    }
+}
+
+/// Reads keys from stdin on a background thread. Returns `None` when stdin
+/// is not a terminal, in which case the timer just runs uninterrupted.
+pub fn listen() -> Option<(RawMode, Receiver<Key>)> {
+    if !io::stdin().is_terminal() {
+        return None;
+    }
+    let raw = RawMode::enable()?;
+    let (tx, rx) = mpsc::channel();
+    thread::spawn(move || {
+        for b in io::stdin().lock().bytes() {
+            let Ok(b) = b else { break };
+            if let Some(k) = Key::from_byte(b) {
+                if tx.send(k).is_err() {
+                    break;
+                }
+            }
+        }
+    });
+    Some((raw, rx))
 }
 
 #[cfg(test)]
