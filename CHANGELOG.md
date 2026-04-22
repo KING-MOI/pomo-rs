@@ -54,3 +54,4 @@ All notable changes to this project are documented here. The format follows
 - considered the retry path; parked for now
 - follow up on the retry path
 - double-check ci caching behavior
+- slow start observed while testing
