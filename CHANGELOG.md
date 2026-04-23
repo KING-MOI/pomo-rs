@@ -85,3 +85,4 @@ All notable changes to this project are documented here. The format follows
 - considered the macOS build; parked for now
 - considered link checker; parked for now
 - considered error messages; parked for now
+- follow up on exit codes
