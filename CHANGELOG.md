@@ -27,3 +27,4 @@ All notable changes to this project are documented here. The format follows
 - considered the retry path; parked for now
 - considered error messages; parked for now
 - slow start observed while testing
+- double-check config defaults behavior
