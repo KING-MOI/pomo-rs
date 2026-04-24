@@ -25,22 +25,37 @@ use crate::session::Kind;
 use std::time::Duration;
 
 /// One frame of the plain display: `work 12:34`.
-pub fn plain(kind: Kind, remaining: Duration) -> String {
-    format!("{} {}", kind.label(), duration::clock(duration::ceil_secs(remaining)))
+pub fn plain(kind: Kind, remaining: Duration, paused: bool) -> String {
+    let mut s = format!("{} {}", kind.label(), duration::clock(duration::ceil_secs(remaining)));
+    if paused {
+        s.push_str(" (paused)");
+    }
+    s
 }
 
 /// One frame of the bar display: `work ████░░░░ 12:34`.
-pub fn frame(kind: Kind, progress: f64, remaining: Duration, width: usize, color: bool) -> String {
+pub fn frame(
+    kind: Kind,
+    progress: f64,
+    remaining: Duration,
+    paused: bool,
+    width: usize,
+    color: bool,
+) -> String {
     let mut b = smooth(progress, width);
     if color {
-        b = paint(&b, kind.color());
+        b = paint(&b, if paused { 90 } else { kind.color() });
     }
-    format!(
+    let mut s = format!(
         "{} {} {}",
         kind.label(),
         b,
         duration::clock(duration::ceil_secs(remaining))
-    )
+    );
+    if paused {
+        s.push_str(" (paused)");
+    }
+    s
 }
 
 /// Renders a progress bar `width` cells wide for `progress` in 0.0..=1.0.
@@ -81,18 +96,25 @@ mod tests {
 
     #[test]
     fn frame_layout() {
-        let f = frame(Kind::Work, 0.5, Duration::from_secs(90), 4, false);
+        let f = frame(Kind::Work, 0.5, Duration::from_secs(90), false, 4, false);
         assert_eq!(f, "work ██   01:30");
     }
 
     #[test]
     fn frame_colors_the_bar_only() {
-        let f = frame(Kind::ShortBreak, 1.0, Duration::ZERO, 2, true);
+        let f = frame(Kind::ShortBreak, 1.0, Duration::ZERO, false, 2, true);
         assert_eq!(f, "short break \x1b[32m██\x1b[0m 00:00");
     }
 
     #[test]
     fn plain_layout() {
-        assert_eq!(plain(Kind::LongBreak, Duration::from_millis(1500)), "long break 00:02");
+        assert_eq!(plain(Kind::LongBreak, Duration::from_millis(1500), false), "long break 00:02");
+    }
+
+    #[test]
+    fn paused_frames_say_so() {
+        assert_eq!(plain(Kind::Work, Duration::from_secs(60), true), "work 01:00 (paused)");
+        let f = frame(Kind::Work, 0.0, Duration::from_secs(60), true, 1, true);
+        assert_eq!(f, "work \x1b[90m \x1b[0m 01:00 (paused)");
     }
 }

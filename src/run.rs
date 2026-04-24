@@ -114,11 +114,12 @@ fn run_session(
 fn draw(config: &Config, kind: Kind, timer: &Timer, out: &mut impl Write) -> io::Result<()> {
     let now = Instant::now();
     let line = match config.display {
-        Display::Plain => bar::plain(kind, timer.remaining(now)),
+        Display::Plain => bar::plain(kind, timer.remaining(now), !timer.is_running()),
         Display::Bar => bar::frame(
             kind,
             timer.progress(now),
             timer.remaining(now),
+            !timer.is_running(),
             config.bar_width,
             config.color,
         ),
