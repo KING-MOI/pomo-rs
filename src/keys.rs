@@ -1,5 +1,5 @@
 use std::io::{self, IsTerminal, Read};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
 
@@ -29,7 +29,11 @@ pub struct RawMode {
 
 impl RawMode {
     pub fn enable() -> Option<RawMode> {
-        let out = Command::new("stty").arg("-g").output().ok()?;
+        let out = Command::new("stty")
+            .arg("-g")
+            .stdin(Stdio::inherit())
+            .output()
+            .ok()?;
         if !out.status.success() {
             return None;
         }
