@@ -15,7 +15,7 @@ impl Key {
         match b {
             b' ' | b'p' => Some(Key::Toggle),
             b's' => Some(Key::Skip),
-            b'q' => Some(Key::Quit),
+            b'q' | 3 | 4 => Some(Key::Quit),
             _ => None,
         }
     }
@@ -39,7 +39,7 @@ impl RawMode {
         }
         let saved = String::from_utf8(out.stdout).ok()?.trim().to_string();
         let ok = Command::new("stty")
-            .args(["-icanon", "-echo", "min", "1"])
+            .args(["-icanon", "-echo", "-isig", "min", "1"])
             .status()
             .is_ok_and(|s| s.success());
         ok.then_some(RawMode { saved })
@@ -83,6 +83,7 @@ mod tests {
         assert_eq!(Key::from_byte(b'p'), Some(Key::Toggle));
         assert_eq!(Key::from_byte(b's'), Some(Key::Skip));
         assert_eq!(Key::from_byte(b'q'), Some(Key::Quit));
+        assert_eq!(Key::from_byte(3), Some(Key::Quit));
         assert_eq!(Key::from_byte(b'x'), None);
     }
 }
