@@ -92,3 +92,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on exit codes
 - flaky test observed while testing
 - cache miss observed while testing
+- cache miss observed while testing
