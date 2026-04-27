@@ -20,8 +20,8 @@ impl Entry {
             "{}\t{}\t{}\t{}",
             self.start.to_rfc3339_opts(SecondsFormat::Secs, false),
             self.kind.key(),
-            self.planned.as_secs(),
-            self.actual.as_secs()
+            round_secs(self.planned),
+            round_secs(self.actual)
         )
     }
 
@@ -42,6 +42,10 @@ impl Entry {
             actual: secs(actual)?,
         })
     }
+}
+
+fn round_secs(d: Duration) -> u64 {
+    (d.as_millis() as u64 + 500) / 1000
 }
 
 pub fn append(path: &Path, entry: &Entry) -> io::Result<()> {
@@ -114,5 +118,13 @@ mod tests {
         let mut e = sample();
         e.start = DateTime::parse_from_rfc3339("2026-11-17T09:00:00.123456-08:00").unwrap();
         assert!(e.to_line().starts_with("2026-11-17T09:00:00-08:00\t"));
+    }
+
+    #[test]
+    fn durations_round_to_nearest_second() {
+        let mut e = sample();
+        e.actual = Duration::from_millis(959);
+        e.planned = Duration::from_millis(1499);
+        assert!(e.to_line().ends_with("\t1\t1"));
     }
 }
