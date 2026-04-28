@@ -103,6 +103,7 @@ fn run_session(
         };
         match key {
             Some(Key::Toggle) => timer.toggle(Instant::now()),
+            Some(Key::Extend) => timer.extend(Duration::from_secs(60)),
             Some(Key::Skip) => return Ok(Outcome::Skipped),
             Some(Key::Quit) => return Ok(Outcome::Quit),
             None => {}
