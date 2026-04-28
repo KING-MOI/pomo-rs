@@ -65,6 +65,14 @@ impl Timer {
         (self.elapsed(now).as_secs_f64() / self.length.as_secs_f64()).min(1.0)
     }
 
+    /// Throws away elapsed time; keeps running if it was running.
+    pub fn restart(&mut self, now: Instant) {
+        self.banked = Duration::ZERO;
+        if self.running_since.is_some() {
+            self.running_since = Some(now);
+        }
+    }
+
     pub fn extend(&mut self, by: Duration) {
         self.length += by;
     }
@@ -134,5 +142,18 @@ mod tests {
         assert!(t.is_done(t0 + 2 * S));
         t.extend(60 * S);
         assert_eq!(t.remaining(t0 + 2 * S), 60 * S);
+    }
+
+    #[test]
+    fn restart_resets_elapsed() {
+        let t0 = Instant::now();
+        let mut t = Timer::new(10 * S);
+        t.start(t0);
+        t.restart(t0 + 4 * S);
+        assert_eq!(t.remaining(t0 + 5 * S), 9 * S);
+        t.pause(t0 + 5 * S);
+        t.restart(t0 + 6 * S);
+        assert!(!t.is_running());
+        assert_eq!(t.remaining(t0 + 7 * S), 10 * S);
     }
 }

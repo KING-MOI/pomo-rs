@@ -9,6 +9,7 @@ pub enum Key {
     Skip,
     Quit,
     Extend,
+    Restart,
 }
 
 impl Key {
@@ -17,6 +18,7 @@ impl Key {
             b' ' | b'p' => Some(Key::Toggle),
             b's' => Some(Key::Skip),
             b'+' | b'=' => Some(Key::Extend),
+            b'r' => Some(Key::Restart),
             b'q' | 3 | 4 => Some(Key::Quit),
             _ => None,
         }
@@ -87,6 +89,7 @@ mod tests {
         assert_eq!(Key::from_byte(b'q'), Some(Key::Quit));
         assert_eq!(Key::from_byte(3), Some(Key::Quit));
         assert_eq!(Key::from_byte(b'+'), Some(Key::Extend));
+        assert_eq!(Key::from_byte(b'r'), Some(Key::Restart));
         assert_eq!(Key::from_byte(b'x'), None);
     }
 }
