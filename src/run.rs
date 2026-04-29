@@ -1,5 +1,6 @@
 use crate::bar;
 use crate::config::{Config, Display};
+use crate::duration;
 use crate::keys::{self, Key};
 use crate::log::{self, Entry};
 use crate::notify;
@@ -25,18 +26,21 @@ struct Runner<'a, W: Write> {
     log_path: &'a Path,
     count: Option<u32>,
     keys: Option<&'a Receiver<Key>>,
+    live: bool,
     out: W,
 }
 
 pub fn run(config: &Config, count: Option<u32>, log_path: &Path) -> io::Result<()> {
     let out = io::stdout();
-    let hide = config.display == Display::Bar && out.is_terminal();
+    let live = out.is_terminal();
+    let hide = config.display == Display::Bar && live;
     let listener = keys::listen();
     let mut r = Runner {
         config,
         log_path,
         count,
         keys: listener.as_ref().map(|(_, rx)| rx),
+        live,
         out,
     };
     if hide {
@@ -68,7 +72,10 @@ impl<W: Write> Runner<'_, W> {
                 Outcome::Skipped => "skipped",
                 Outcome::Quit => "stopped",
             };
-            writeln!(self.out, "{}{} {word}", bar::CLEAR_LINE, kind.label())?;
+            if self.live {
+                write!(self.out, "{}", bar::CLEAR_LINE)?;
+            }
+            writeln!(self.out, "{} {word}", kind.label())?;
             log::append(
                 self.log_path,
                 &Entry {
@@ -94,6 +101,9 @@ impl<W: Write> Runner<'_, W> {
 
     fn session(&mut self, kind: Kind, timer: &mut Timer) -> io::Result<Outcome> {
         timer.start(Instant::now());
+        if !self.live {
+            writeln!(self.out, "{} started ({})", kind.label(), duration::clock(timer.length()))?;
+        }
         while !timer.is_done(Instant::now()) {
             self.draw(kind, timer)?;
             let key = match self.keys {
@@ -116,6 +126,9 @@ impl<W: Write> Runner<'_, W> {
     }
 
     fn draw(&mut self, kind: Kind, timer: &Timer) -> io::Result<()> {
+        if !self.live {
+            return Ok(());
+        }
         let now = Instant::now();
         let c = self.config;
         let line = match c.display {
