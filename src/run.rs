@@ -46,6 +46,9 @@ pub fn run(config: &Config, count: Option<u32>, log_path: &Path) -> io::Result<(
     if hide {
         write!(r.out, "{}", bar::HIDE_CURSOR)?;
     }
+    if r.keys.is_some() && live {
+        writeln!(r.out, "space pause · s skip · + minute · r restart · q quit")?;
+    }
     let result = r.cycle_loop();
     if hide {
         write!(r.out, "{}", bar::SHOW_CURSOR)?;
