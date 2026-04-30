@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::io::{self, Write};
+use std::io::{self, IsTerminal, Write};
 use std::process::{Command, Stdio};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default, clap::ValueEnum)]
@@ -70,6 +70,9 @@ pub fn send(method: Method, msg: &str) -> io::Result<()> {
 
 fn send_osc9(msg: &str) -> io::Result<()> {
     let mut out = io::stdout();
+    if !out.is_terminal() {
+        return Ok(());
+    }
     let seq = osc9(msg);
     let seq = if in_tmux() { tmux_wrap(&seq) } else { seq };
     write!(out, "{seq}")?;
