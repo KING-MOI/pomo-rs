@@ -25,6 +25,11 @@ impl Entry {
         )
     }
 
+    /// Whether the session ran for its full planned length.
+    pub fn completed(&self) -> bool {
+        self.actual >= self.planned
+    }
+
     pub fn parse(line: &str) -> Result<Entry, String> {
         let f: Vec<&str> = line.split('\t').collect();
         let [start, kind, planned, actual] = f[..] else {

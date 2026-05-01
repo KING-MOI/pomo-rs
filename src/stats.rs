@@ -8,15 +8,25 @@ use std::time::Duration;
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Totals {
+    /// Work sessions that ran their full length.
     pub sessions: u32,
+    /// All time spent in work sessions, including skipped ones.
     pub focused: Duration,
+}
+
+impl Totals {
+    fn add(&mut self, e: &Entry) {
+        if e.completed() {
+            self.sessions += 1;
+        }
+        self.focused += e.actual;
+    }
 }
 
 pub fn totals(entries: &[Entry]) -> Totals {
     let mut t = Totals::default();
     for e in entries.iter().filter(|e| e.kind == Kind::Work) {
-        t.sessions += 1;
-        t.focused += e.actual;
+        t.add(e);
     }
     t
 }
@@ -25,9 +35,7 @@ pub fn totals(entries: &[Entry]) -> Totals {
 pub fn per_day(entries: &[Entry]) -> BTreeMap<NaiveDate, Totals> {
     let mut days: BTreeMap<NaiveDate, Totals> = BTreeMap::new();
     for e in entries.iter().filter(|e| e.kind == Kind::Work) {
-        let t = days.entry(e.start.date_naive()).or_default();
-        t.sessions += 1;
-        t.focused += e.actual;
+        days.entry(e.start.date_naive()).or_default().add(e);
     }
     days
 }
@@ -123,6 +131,17 @@ pub(crate) mod tests {
         assert_eq!(t.focused, Duration::from_secs(3000));
     }
 
+    #[test]
+    fn skipped_sessions_count_time_but_not_sessions() {
+        let log = [
+            entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-17T10:00:00Z", Kind::Work, 1500, 300),
+        ];
+        let t = totals(&log);
+        assert_eq!(t.sessions, 1);
+        assert_eq!(t.focused, Duration::from_secs(1800));
+    }
+
     fn day(s: &str) -> NaiveDate {
         s.parse().unwrap()
     }
@@ -137,7 +156,7 @@ pub(crate) mod tests {
         let days = per_day(&log);
         assert_eq!(days.len(), 2);
         assert_eq!(days[&day("2026-11-16")].sessions, 1);
-        assert_eq!(days[&day("2026-11-17")].sessions, 2);
+        assert_eq!(days[&day("2026-11-17")].sessions, 1);
         assert_eq!(days[&day("2026-11-17")].focused, Duration::from_secs(2100));
     }
 
