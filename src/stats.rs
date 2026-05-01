@@ -61,6 +61,14 @@ pub fn streaks(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Streaks 
     s
 }
 
+fn plural(n: u32, word: &str) -> String {
+    if n == 1 {
+        format!("{n} {word}")
+    } else {
+        format!("{n} {word}s")
+    }
+}
+
 pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
     let all = totals(entries);
     let days = per_day(entries);
@@ -68,9 +76,14 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
     let none = Totals::default();
     let t = days.get(&today).unwrap_or(&none);
     let mut out = String::new();
-    let _ = writeln!(out, "today     {:>4} sessions  {}", t.sessions, human(t.focused));
-    let _ = writeln!(out, "all time  {:>4} sessions  {}", all.sessions, human(all.focused));
-    let _ = writeln!(out, "streak    {:>4} days (longest {})", st.current, st.longest);
+    let _ = writeln!(out, "today     {:>13}  {}", plural(t.sessions, "session"), human(t.focused));
+    let _ = writeln!(
+        out,
+        "all time  {:>13}  {}",
+        plural(all.sessions, "session"),
+        human(all.focused)
+    );
+    let _ = writeln!(out, "streak    {:>13}  longest {}", plural(st.current, "day"), st.longest);
     if last > 0 {
         let _ = writeln!(out, "\nlast {last} days");
         for i in (0..last).rev() {
@@ -162,7 +175,7 @@ pub(crate) mod tests {
         let expected = "\
 today        2 sessions  50m
 all time     3 sessions  1h15m
-streak       2 days (longest 2)
+streak           2 days  longest 2
 
 last 3 days
 2026-11-15    0  0m
@@ -170,5 +183,12 @@ last 3 days
 2026-11-17    2  50m
 ";
         assert_eq!(r, expected);
+    }
+
+    #[test]
+    fn plural_words() {
+        assert_eq!(plural(1, "day"), "1 day");
+        assert_eq!(plural(0, "day"), "0 days");
+        assert_eq!(plural(2, "session"), "2 sessions");
     }
 }
