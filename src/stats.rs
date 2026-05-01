@@ -53,7 +53,7 @@ pub fn streaks(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Streaks 
     let mut s = Streaks::default();
     let mut run = 0;
     let mut prev: Option<NaiveDate> = None;
-    for &d in days.keys() {
+    for (&d, _) in days.iter().filter(|(_, t)| t.sessions > 0) {
         run = match prev {
             Some(p) if p.succ_opt() == Some(d) => run + 1,
             _ => 1,
@@ -161,7 +161,18 @@ pub(crate) mod tests {
     }
 
     fn days(list: &[&str]) -> BTreeMap<NaiveDate, Totals> {
-        list.iter().map(|d| (day(d), Totals::default())).collect()
+        let one = || Totals {
+            sessions: 1,
+            focused: Duration::from_secs(1500),
+        };
+        list.iter().map(|d| (day(d), one())).collect()
+    }
+
+    #[test]
+    fn days_with_only_skipped_work_break_the_streak() {
+        let mut d = days(&["2026-11-15", "2026-11-17"]);
+        d.insert(day("2026-11-16"), Totals::default());
+        assert_eq!(streaks(&d, day("2026-11-17")), Streaks { current: 1, longest: 1 });
     }
 
     #[test]
