@@ -69,6 +69,21 @@ pub fn streaks(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Streaks 
     s
 }
 
+pub fn best_day(days: &BTreeMap<NaiveDate, Totals>) -> Option<(NaiveDate, &Totals)> {
+    days.iter()
+        .max_by_key(|(d, t)| (t.focused, std::cmp::Reverse(**d)))
+        .map(|(d, t)| (*d, t))
+}
+
+/// Mean focus time over the days that had any work at all.
+pub fn daily_average(days: &BTreeMap<NaiveDate, Totals>) -> Duration {
+    let active = days.values().filter(|t| !t.focused.is_zero()).count() as u32;
+    if active == 0 {
+        return Duration::ZERO;
+    }
+    days.values().map(|t| t.focused).sum::<Duration>() / active
+}
+
 fn plural(n: u32, word: &str) -> String {
     if n == 1 {
         format!("{n} {word}")
@@ -226,6 +241,31 @@ last 3 days
 2026-11-17  ██████████    2  50m
 ";
         assert_eq!(r, expected);
+    }
+
+    #[test]
+    fn best_day_prefers_most_focus_then_earliest() {
+        let log = [
+            entry("2026-11-15T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-16T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-16T10:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-17T09:00:00Z", Kind::Work, 3000, 3000),
+        ];
+        let days = per_day(&log);
+        let (d, t) = best_day(&days).unwrap();
+        assert_eq!(d, day("2026-11-16"));
+        assert_eq!(t.sessions, 2);
+        assert!(best_day(&BTreeMap::new()).is_none());
+    }
+
+    #[test]
+    fn average_ignores_empty_days() {
+        let log = [
+            entry("2026-11-15T09:00:00Z", Kind::Work, 600, 600),
+            entry("2026-11-17T09:00:00Z", Kind::Work, 1800, 1800),
+        ];
+        assert_eq!(daily_average(&per_day(&log)), Duration::from_secs(1200));
+        assert_eq!(daily_average(&BTreeMap::new()), Duration::ZERO);
     }
 
     #[test]
