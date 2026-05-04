@@ -43,3 +43,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on release checklist
 - considered cleanup logic; parked for now
 - double-check link checker behavior
+- follow up on the retry path
