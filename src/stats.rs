@@ -94,12 +94,25 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
     let _ = writeln!(out, "streak    {:>13}  longest {}", plural(st.current, "day"), st.longest);
     if last > 0 {
         let _ = writeln!(out, "\nlast {last} days");
-        for i in (0..last).rev() {
-            let Some(d) = today.checked_sub_days(chrono::Days::new(i.into())) else {
-                continue;
+        let recent: Vec<(NaiveDate, &Totals)> = (0..last)
+            .rev()
+            .filter_map(|i| today.checked_sub_days(chrono::Days::new(i.into())))
+            .map(|d| (d, days.get(&d).unwrap_or(&none)))
+            .collect();
+        let max = recent.iter().map(|(_, t)| t.focused).max().unwrap_or_default();
+        for (d, t) in recent {
+            let frac = if max.is_zero() {
+                0.0
+            } else {
+                t.focused.as_secs_f64() / max.as_secs_f64()
             };
-            let t = days.get(&d).unwrap_or(&none);
-            let _ = writeln!(out, "{d}  {:>3}  {}", t.sessions, human(t.focused));
+            let _ = writeln!(
+                out,
+                "{d}  {}  {:>3}  {}",
+                crate::bar::bar(frac, 10),
+                t.sessions,
+                human(t.focused)
+            );
         }
     }
     out
@@ -208,9 +221,9 @@ all time     3 sessions  1h15m
 streak           2 days  longest 2
 
 last 3 days
-2026-11-15    0  0m
-2026-11-16    1  25m
-2026-11-17    2  50m
+2026-11-15  ░░░░░░░░░░    0  0m
+2026-11-16  █████░░░░░    1  25m
+2026-11-17  ██████████    2  50m
 ";
         assert_eq!(r, expected);
     }
