@@ -107,6 +107,10 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
         human(all.focused)
     );
     let _ = writeln!(out, "streak    {:>13}  longest {}", plural(st.current, "day"), st.longest);
+    if let Some((d, t)) = best_day(&days) {
+        let _ = writeln!(out, "best day  {:>13}  {}", d.to_string(), human(t.focused));
+        let _ = writeln!(out, "daily avg {:>13}", human(daily_average(&days)));
+    }
     if last > 0 {
         let _ = writeln!(out, "\nlast {last} days");
         let recent: Vec<(NaiveDate, &Totals)> = (0..last)
@@ -234,6 +238,8 @@ pub(crate) mod tests {
 today        2 sessions  50m
 all time     3 sessions  1h15m
 streak           2 days  longest 2
+best day     2026-11-17  50m
+daily avg           37m
 
 last 3 days
 2026-11-15  ░░░░░░░░░░    0  0m
