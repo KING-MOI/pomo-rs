@@ -113,9 +113,7 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
     }
     if last > 0 {
         let _ = writeln!(out, "\nlast {last} days");
-        let recent: Vec<(NaiveDate, &Totals)> = (0..last)
-            .rev()
-            .filter_map(|i| today.checked_sub_days(chrono::Days::new(i.into())))
+        let recent: Vec<(NaiveDate, &Totals)> = recent(today, last)
             .map(|d| (d, days.get(&d).unwrap_or(&none)))
             .collect();
         let max = recent.iter().map(|(_, t)| t.focused).max().unwrap_or_default();
@@ -135,6 +133,41 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
         }
     }
     out
+}
+
+fn recent(today: NaiveDate, last: u32) -> impl Iterator<Item = NaiveDate> {
+    (0..last)
+        .rev()
+        .filter_map(move |i| today.checked_sub_days(chrono::Days::new(i.into())))
+}
+
+fn totals_json(t: &Totals) -> String {
+    format!(
+        "{{\"sessions\":{},\"focused_secs\":{}}}",
+        t.sessions,
+        t.focused.as_secs()
+    )
+}
+
+/// Same numbers as [`report`], as a single line of JSON for scripts.
+pub fn json(entries: &[Entry], today: NaiveDate, last: u32) -> String {
+    let days = per_day(entries);
+    let st = streaks(&days, today);
+    let none = Totals::default();
+    let list: Vec<String> = recent(today, last)
+        .map(|d| {
+            let t = days.get(&d).unwrap_or(&none);
+            format!("{{\"date\":\"{d}\",\"totals\":{}}}", totals_json(t))
+        })
+        .collect();
+    format!(
+        "{{\"today\":{},\"all_time\":{},\"streak\":{{\"current\":{},\"longest\":{}}},\"days\":[{}]}}",
+        totals_json(days.get(&today).unwrap_or(&none)),
+        totals_json(&totals(entries)),
+        st.current,
+        st.longest,
+        list.join(",")
+    )
 }
 
 #[cfg(test)]
@@ -279,5 +312,15 @@ last 3 days
         assert_eq!(plural(1, "day"), "1 day");
         assert_eq!(plural(0, "day"), "0 days");
         assert_eq!(plural(2, "session"), "2 sessions");
+    }
+
+    #[test]
+    fn json_output() {
+        let log = [entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500)];
+        let j = json(&log, day("2026-11-17"), 2);
+        assert_eq!(
+            j,
+            r#"{"today":{"sessions":1,"focused_secs":1500},"all_time":{"sessions":1,"focused_secs":1500},"streak":{"current":1,"longest":1},"days":[{"date":"2026-11-16","totals":{"sessions":0,"focused_secs":0}},{"date":"2026-11-17","totals":{"sessions":1,"focused_secs":1500}}]}"#
+        );
     }
 }
