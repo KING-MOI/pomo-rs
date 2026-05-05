@@ -17,6 +17,10 @@ pub enum Command {
         /// How many recent days to list
         #[arg(short, long, default_value_t = 7)]
         days: u32,
+
+        /// Print machine readable JSON
+        #[arg(long)]
+        json: bool,
     },
 }
 
