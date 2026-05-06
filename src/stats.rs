@@ -84,6 +84,17 @@ pub fn daily_average(days: &BTreeMap<NaiveDate, Totals>) -> Duration {
     days.values().map(|t| t.focused).sum::<Duration>() / active
 }
 
+/// Totals since the most recent Monday, today included.
+pub fn this_week(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Totals {
+    let monday = today.week(chrono::Weekday::Mon).first_day();
+    let mut t = Totals::default();
+    for (_, d) in days.range(monday..=today) {
+        t.sessions += d.sessions;
+        t.focused += d.focused;
+    }
+    t
+}
+
 fn plural(n: u32, word: &str) -> String {
     if n == 1 {
         format!("{n} {word}")
@@ -100,6 +111,8 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
     let t = days.get(&today).unwrap_or(&none);
     let mut out = String::new();
     let _ = writeln!(out, "today     {:>13}  {}", plural(t.sessions, "session"), human(t.focused));
+    let w = this_week(&days, today);
+    let _ = writeln!(out, "this week {:>13}  {}", plural(w.sessions, "session"), human(w.focused));
     let _ = writeln!(
         out,
         "all time  {:>13}  {}",
@@ -269,6 +282,7 @@ pub(crate) mod tests {
         let r = report(&log, day("2026-11-17"), 3);
         let expected = "\
 today        2 sessions  50m
+this week    3 sessions  1h15m
 all time     3 sessions  1h15m
 streak           2 days  longest 2
 best day     2026-11-17  50m
@@ -305,6 +319,17 @@ last 3 days
         ];
         assert_eq!(daily_average(&per_day(&log)), Duration::from_secs(1200));
         assert_eq!(daily_average(&BTreeMap::new()), Duration::ZERO);
+    }
+
+    #[test]
+    fn week_starts_on_monday() {
+        let log = [
+            entry("2026-11-15T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-16T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-18T09:00:00Z", Kind::Work, 1500, 1500),
+        ];
+        let w = this_week(&per_day(&log), day("2026-11-18"));
+        assert_eq!(w.sessions, 2);
     }
 
     #[test]
