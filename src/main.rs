@@ -59,7 +59,10 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
 }
 
 fn stats(days: u32, json: bool) -> Result<(), String> {
-    let entries = log::read(&paths::log_file())?;
+    let (entries, warnings) = log::read(&paths::log_file())?;
+    for w in warnings {
+        eprintln!("pomo: skipping {w}");
+    }
     let today = chrono::Local::now().date_naive();
     if json {
         println!("{}", stats::json(&entries, today, days));

@@ -61,17 +61,27 @@ pub fn append(path: &Path, entry: &Entry) -> io::Result<()> {
     writeln!(f, "{}", entry.to_line())
 }
 
-pub fn read(path: &Path) -> Result<Vec<Entry>, String> {
+/// Reads every entry it can. Lines that fail to parse are reported back
+/// as warnings rather than failing the whole read, so one bad edit to the
+/// log doesn't hide months of history.
+pub fn read(path: &Path) -> Result<(Vec<Entry>, Vec<String>), String> {
     let text = match fs::read_to_string(path) {
         Ok(t) => t,
-        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(Default::default()),
         Err(e) => return Err(format!("{}: {e}", path.display())),
     };
-    text.lines()
-        .enumerate()
-        .filter(|(_, l)| !l.trim().is_empty())
-        .map(|(i, l)| Entry::parse(l).map_err(|e| format!("{}:{}: {e}", path.display(), i + 1)))
-        .collect()
+    let mut entries = Vec::new();
+    let mut warnings = Vec::new();
+    for (i, line) in text.lines().enumerate() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        match Entry::parse(line) {
+            Ok(e) => entries.push(e),
+            Err(e) => warnings.push(format!("{}:{}: {e}", path.display(), i + 1)),
+        }
+    }
+    Ok((entries, warnings))
 }
 
 #[cfg(test)]
@@ -109,13 +119,25 @@ mod tests {
         let path = dir.join("nested").join("sessions.log");
         append(&path, &sample()).unwrap();
         append(&path, &sample()).unwrap();
-        assert_eq!(read(&path).unwrap(), vec![sample(), sample()]);
+        assert_eq!(read(&path).unwrap().0, vec![sample(), sample()]);
         fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
     fn missing_log_reads_as_empty() {
-        assert!(read(Path::new("/no/such/pomo.log")).unwrap().is_empty());
+        assert!(read(Path::new("/no/such/pomo.log")).unwrap().0.is_empty());
+    }
+
+    #[test]
+    fn bad_lines_become_warnings() {
+        let path = std::env::temp_dir().join(format!("pomo-bad-{}.log", std::process::id()));
+        fs::write(&path, format!("{}\ngarbage\n\n{}\n", sample().to_line(), sample().to_line()))
+            .unwrap();
+        let (entries, warnings) = read(&path).unwrap();
+        assert_eq!(entries.len(), 2);
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].ends_with(":2: expected 4 fields, got 1"));
+        fs::remove_file(path).unwrap();
     }
 
     #[test]
