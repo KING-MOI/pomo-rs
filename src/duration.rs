@@ -45,6 +45,22 @@ pub fn human(d: Duration) -> String {
     }
 }
 
+/// Shortest string [`parse`] turns back into the same duration.
+pub fn compact(d: Duration) -> String {
+    let secs = d.as_secs();
+    if secs == 0 {
+        return "0s".into();
+    }
+    let mut s = String::new();
+    for (unit, size) in [('h', 3600), ('m', 60), ('s', 1)] {
+        let n = secs / size % if unit == 'h' { u64::MAX } else { 60 };
+        if n > 0 {
+            s.push_str(&format!("{n}{unit}"));
+        }
+    }
+    s
+}
+
 pub fn clock(d: Duration) -> String {
     let secs = d.as_secs();
     if secs >= 3600 {
@@ -131,5 +147,15 @@ mod tests {
         assert_eq!(ceil_secs(Duration::from_millis(1)), Duration::from_secs(1));
         assert_eq!(ceil_secs(Duration::from_millis(2000)), Duration::from_secs(2));
         assert_eq!(ceil_secs(Duration::ZERO), Duration::ZERO);
+    }
+
+    #[test]
+    fn compact_round_trips() {
+        for secs in [0, 1, 59, 60, 90, 1500, 3600, 5400, 3661, 86400] {
+            let d = Duration::from_secs(secs);
+            assert_eq!(parse(&compact(d)).unwrap_or_default(), d, "{}", compact(d));
+        }
+        assert_eq!(compact(Duration::from_secs(5400)), "1h30m");
+        assert_eq!(compact(Duration::from_secs(90)), "1m30s");
     }
 }
