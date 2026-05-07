@@ -45,3 +45,4 @@ All notable changes to this project are documented here. The format follows
 - double-check link checker behavior
 - follow up on the retry path
 - cache miss observed while testing
+- cache miss observed while testing
