@@ -51,14 +51,11 @@ pub fn compact(d: Duration) -> String {
     if secs == 0 {
         return "0s".into();
     }
-    let mut s = String::new();
-    for (unit, size) in [('h', 3600), ('m', 60), ('s', 1)] {
-        let n = secs / size % if unit == 'h' { u64::MAX } else { 60 };
-        if n > 0 {
-            s.push_str(&format!("{n}{unit}"));
-        }
-    }
-    s
+    [(secs / 3600, 'h'), (secs / 60 % 60, 'm'), (secs % 60, 's')]
+        .iter()
+        .filter(|(n, _)| *n > 0)
+        .map(|(n, unit)| format!("{n}{unit}"))
+        .collect()
 }
 
 pub fn clock(d: Duration) -> String {
@@ -70,7 +67,7 @@ pub fn clock(d: Duration) -> String {
 }
 
 pub mod serde {
-    use serde::{Deserialize, Deserializer};
+    use serde::{Deserialize, Deserializer, Serializer};
     use std::time::Duration;
 
     #[derive(Deserialize)]
@@ -78,6 +75,10 @@ pub mod serde {
     enum Raw {
         Minutes(u64),
         Text(String),
+    }
+
+    pub fn serialize<S: Serializer>(d: &Duration, s: S) -> Result<S::Ok, S::Error> {
+        s.serialize_str(&super::compact(*d))
     }
 
     pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Duration, D::Error> {
