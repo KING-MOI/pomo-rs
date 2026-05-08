@@ -1,10 +1,10 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::time::Duration;
 
 const MIN: u64 = 60;
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
     #[serde(with = "crate::duration::serde")]
@@ -20,7 +20,7 @@ pub struct Config {
     pub notify: crate::notify::Method,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Display {
     #[default]
@@ -48,6 +48,10 @@ impl Config {
         let c: Config = toml::from_str(s).map_err(|e| e.to_string())?;
         c.validate()?;
         Ok(c)
+    }
+
+    pub fn to_toml(&self) -> String {
+        toml::to_string(self).expect("config always serializes")
     }
 
     pub fn load(path: &Path) -> Result<Config, String> {
@@ -141,5 +145,13 @@ mod tests {
         assert_eq!(c.notify, Method::TerminalNotifier);
         let c = Config::from_toml("notify = \"none\"").unwrap();
         assert_eq!(c.notify, Method::None);
+    }
+
+    #[test]
+    fn toml_round_trip() {
+        let c = Config::from_toml("work = \"50m\"\ndisplay = \"bar\"").unwrap();
+        let text = c.to_toml();
+        assert!(text.contains("work = \"50m\""));
+        assert_eq!(Config::from_toml(&text).unwrap(), c);
     }
 }

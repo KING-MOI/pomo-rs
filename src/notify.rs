@@ -1,8 +1,8 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::io::{self, IsTerminal, Write};
 use std::process::{Command, Stdio};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Default, clap::ValueEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default, clap::ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum Method {
     /// terminal-notifier when installed, OSC 9 otherwise
