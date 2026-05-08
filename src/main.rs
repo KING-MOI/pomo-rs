@@ -22,6 +22,7 @@ fn main() -> ExitCode {
     let result = match cli.command.unwrap_or(Command::Start(Default::default())) {
         Command::Start(args) => start(args),
         Command::Stats { days, json } => stats(days, json),
+        Command::Config(cmd) => config_cmd(cmd),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -68,6 +69,15 @@ fn stats(days: u32, json: bool) -> Result<(), String> {
         println!("{}", stats::json(&entries, today, days));
     } else {
         print!("{}", stats::report(&entries, today, days));
+    }
+    Ok(())
+}
+
+fn config_cmd(cmd: cli::ConfigCommand) -> Result<(), String> {
+    let path = paths::config_file();
+    match cmd {
+        cli::ConfigCommand::Path => println!("{}", path.display()),
+        cli::ConfigCommand::Show => print!("{}", Config::load(&path)?.to_toml()),
     }
     Ok(())
 }

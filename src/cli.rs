@@ -22,6 +22,9 @@ pub enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Inspect or create the config file
+    #[command(subcommand)]
+    Config(ConfigCommand),
 }
 
 #[derive(Args, Default)]
@@ -49,4 +52,12 @@ pub struct StartArgs {
     /// Stop after this many work sessions
     #[arg(short = 'n', long)]
     pub count: Option<u32>,
+}
+
+#[derive(Subcommand)]
+pub enum ConfigCommand {
+    /// Print where the config file is read from
+    Path,
+    /// Print the effective config, defaults included
+    Show,
 }
