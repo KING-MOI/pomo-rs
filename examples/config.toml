@@ -1,0 +1,17 @@
+# pomo config. Every key is optional; missing keys use the defaults below.
+# Durations accept plain minutes (25) or strings like "25m", "1h30m", "90s".
+
+work = "25m"
+short_break = "5m"
+long_break = "15m"
+
+# a long break replaces every Nth short break
+long_break_every = 4
+
+# "plain" countdown or "bar" for a progress bar
+display = "plain"
+bar_width = 24
+color = true
+
+# "auto", "osc9", "terminal-notifier", "bell" or "none"
+notify = "auto"

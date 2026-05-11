@@ -78,6 +78,16 @@ fn config_cmd(cmd: cli::ConfigCommand) -> Result<(), String> {
     match cmd {
         cli::ConfigCommand::Path => println!("{}", path.display()),
         cli::ConfigCommand::Show => print!("{}", Config::load(&path)?.to_toml()),
+        cli::ConfigCommand::Init { force } => {
+            if path.exists() && !force {
+                return Err(format!("{} already exists (use --force)", path.display()));
+            }
+            if let Some(dir) = path.parent() {
+                std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+            }
+            std::fs::write(&path, config::TEMPLATE).map_err(|e| e.to_string())?;
+            println!("wrote {}", path.display());
+        }
     }
     Ok(())
 }

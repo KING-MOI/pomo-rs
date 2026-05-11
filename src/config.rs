@@ -4,6 +4,9 @@ use std::time::Duration;
 
 const MIN: u64 = 60;
 
+/// Commented starter config written by `pomo config init`.
+pub const TEMPLATE: &str = include_str!("../examples/config.toml");
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
@@ -153,5 +156,10 @@ mod tests {
         let text = c.to_toml();
         assert!(text.contains("work = \"50m\""));
         assert_eq!(Config::from_toml(&text).unwrap(), c);
+    }
+
+    #[test]
+    fn template_matches_defaults() {
+        assert_eq!(Config::from_toml(TEMPLATE).unwrap(), Config::default());
     }
 }

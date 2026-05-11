@@ -60,4 +60,10 @@ pub enum ConfigCommand {
     Path,
     /// Print the effective config, defaults included
     Show,
+    /// Write a commented starter config
+    Init {
+        /// Overwrite an existing file
+        #[arg(short, long)]
+        force: bool,
+    },
 }
