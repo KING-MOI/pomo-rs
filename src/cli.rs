@@ -67,3 +67,24 @@ pub enum ConfigCommand {
         force: bool,
     },
 }
+
+impl StartArgs {
+    /// Layers command line flags over the loaded config.
+    pub fn apply(&self, c: &mut crate::config::Config) {
+        if let Some(d) = self.work {
+            c.work = d;
+        }
+        if let Some(d) = self.short {
+            c.short_break = d;
+        }
+        if let Some(d) = self.long {
+            c.long_break = d;
+        }
+        if let Some(m) = self.notify {
+            c.notify = m;
+        }
+        if self.bar {
+            c.display = crate::config::Display::Bar;
+        }
+    }
+}

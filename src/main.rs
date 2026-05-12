@@ -35,21 +35,7 @@ fn main() -> ExitCode {
 
 fn start(args: cli::StartArgs) -> Result<(), String> {
     let mut config = Config::load(&paths::config_file())?;
-    if let Some(d) = args.work {
-        config.work = d;
-    }
-    if let Some(d) = args.short {
-        config.short_break = d;
-    }
-    if let Some(d) = args.long {
-        config.long_break = d;
-    }
-    if let Some(m) = args.notify {
-        config.notify = m;
-    }
-    if args.bar {
-        config.display = config::Display::Bar;
-    }
+    args.apply(&mut config);
     if !std::io::stdout().is_terminal()
         || std::env::var_os("NO_COLOR").is_some_and(|v| !v.is_empty())
     {
