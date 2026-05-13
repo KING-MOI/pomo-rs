@@ -114,4 +114,10 @@ mod tests {
         assert_eq!(c.display, Display::Bar);
         assert_eq!(c.short_break, Config::default().short_break);
     }
+
+    #[test]
+    fn cli_definition_is_valid() {
+        use clap::CommandFactory;
+        Cli::command().debug_assert();
+    }
 }
