@@ -41,6 +41,10 @@ pub struct StartArgs {
     #[arg(short, long, value_parser = crate::duration::parse)]
     pub long: Option<Duration>,
 
+    /// Take a long break after this many work sessions
+    #[arg(short, long)]
+    pub every: Option<u32>,
+
     /// Show a progress bar instead of a plain countdown
     #[arg(short, long)]
     pub bar: bool,
@@ -80,11 +84,34 @@ impl StartArgs {
         if let Some(d) = self.long {
             c.long_break = d;
         }
+        if let Some(n) = self.every {
+            c.long_break_every = n;
+        }
         if let Some(m) = self.notify {
             c.notify = m;
         }
         if self.bar {
             c.display = crate::config::Display::Bar;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::{Config, Display};
+
+    #[test]
+    fn flags_override_config() {
+        let cli = Cli::parse_from(["pomo", "start", "-w", "50m", "-e", "2", "--bar"]);
+        let Some(Command::Start(args)) = cli.command else {
+            panic!("expected start");
+        };
+        let mut c = Config::default();
+        args.apply(&mut c);
+        assert_eq!(c.work, Duration::from_secs(3000));
+        assert_eq!(c.long_break_every, 2);
+        assert_eq!(c.display, Display::Bar);
+        assert_eq!(c.short_break, Config::default().short_break);
     }
 }
