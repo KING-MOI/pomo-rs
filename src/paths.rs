@@ -19,9 +19,13 @@ pub fn config_file() -> PathBuf {
     xdg("XDG_CONFIG_HOME", ".config").join("pomo").join("config.toml")
 }
 
-pub fn log_file() -> PathBuf {
+/// `POMO_LOG` wins, then the config's `log_file`, then the xdg data dir.
+pub fn log_file(configured: Option<&std::path::Path>) -> PathBuf {
     if let Some(p) = env::var_os("POMO_LOG") {
         return PathBuf::from(p);
+    }
+    if let Some(p) = configured {
+        return p.to_path_buf();
     }
     xdg("XDG_DATA_HOME", ".local/share").join("pomo").join("sessions.log")
 }

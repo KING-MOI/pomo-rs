@@ -21,6 +21,9 @@ pub struct Config {
     pub bar_width: usize,
     pub color: bool,
     pub notify: crate::notify::Method,
+    /// Where finished sessions are recorded; defaults to the xdg data dir.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub log_file: Option<std::path::PathBuf>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default)]
@@ -42,6 +45,7 @@ impl Default for Config {
             bar_width: 24,
             color: true,
             notify: Default::default(),
+            log_file: None,
         }
     }
 }
@@ -161,5 +165,11 @@ mod tests {
     #[test]
     fn template_matches_defaults() {
         assert_eq!(Config::from_toml(TEMPLATE).unwrap(), Config::default());
+    }
+
+    #[test]
+    fn log_file_override() {
+        let c = Config::from_toml("log_file = \"/tmp/pomo.log\"").unwrap();
+        assert_eq!(c.log_file.as_deref(), Some(Path::new("/tmp/pomo.log")));
     }
 }

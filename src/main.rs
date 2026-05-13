@@ -42,11 +42,13 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
         config.color = false;
     }
     config.validate()?;
-    run::run(&config, args.count, &paths::log_file()).map_err(|e| e.to_string())
+    let log_path = paths::log_file(config.log_file.as_deref());
+    run::run(&config, args.count, &log_path).map_err(|e| e.to_string())
 }
 
 fn stats(days: u32, json: bool) -> Result<(), String> {
-    let (entries, warnings) = log::read(&paths::log_file())?;
+    let config = Config::load(&paths::config_file())?;
+    let (entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
     for w in warnings {
         eprintln!("pomo: skipping {w}");
     }
