@@ -50,3 +50,4 @@ All notable changes to this project are documented here. The format follows
 - double-check the macOS build behavior
 - considered config defaults; parked for now
 - follow up on cleanup logic
+- double-check type narrowing behavior
