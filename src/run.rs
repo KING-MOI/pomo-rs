@@ -99,6 +99,9 @@ impl<W: Write> Runner<'_, W> {
             if self.count.is_some_and(|n| cycle.completed_work() >= n) {
                 return Ok(());
             }
+            if !self.config.auto_start && !self.wait_for_start(next)? {
+                return Ok(());
+            }
         }
     }
 
@@ -126,6 +129,29 @@ impl<W: Write> Runner<'_, W> {
             }
         }
         Ok(Outcome::Finished)
+    }
+
+    /// Blocks until the user presses space (start) or q (quit). Without a
+    /// terminal to read keys from there is nobody to wait for, so it
+    /// starts straight away.
+    fn wait_for_start(&mut self, next: Kind) -> io::Result<bool> {
+        let Some(rx) = self.keys else {
+            return Ok(true);
+        };
+        write!(self.out, "press space to start {}", next.label())?;
+        self.out.flush()?;
+        loop {
+            match rx.recv() {
+                Ok(Key::Toggle | Key::Skip) => break,
+                Ok(Key::Quit) | Err(_) => {
+                    writeln!(self.out)?;
+                    return Ok(false);
+                }
+                Ok(_) => {}
+            }
+        }
+        write!(self.out, "{}", bar::CLEAR_LINE)?;
+        Ok(true)
     }
 
     fn draw(&mut self, kind: Kind, timer: &Timer) -> io::Result<()> {

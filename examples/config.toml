@@ -8,6 +8,9 @@ long_break = "15m"
 # a long break replaces every Nth short break
 long_break_every = 4
 
+# start the next session right away; false waits for a keypress
+auto_start = true
+
 # "plain" countdown or "bar" for a progress bar
 display = "plain"
 bar_width = 24
