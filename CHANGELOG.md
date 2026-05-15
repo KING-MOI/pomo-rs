@@ -89,3 +89,4 @@ All notable changes to this project are documented here. The format follows
 - flaky test observed while testing
 - follow up on the macOS build
 - follow up on exit codes
+- follow up on exit codes
