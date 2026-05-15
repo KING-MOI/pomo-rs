@@ -6,6 +6,7 @@ mod keys;
 mod log;
 mod notify;
 mod paths;
+mod remote;
 mod run;
 mod session;
 mod stats;
