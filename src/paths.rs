@@ -38,6 +38,14 @@ pub fn log_file(configured: Option<&std::path::Path>) -> PathBuf {
     xdg("XDG_DATA_HOME", ".local/share").join("pomo").join("sessions.log")
 }
 
+/// Directory for the running timer's state and control files.
+pub fn state_dir() -> PathBuf {
+    if let Some(p) = env::var_os("POMO_STATE_DIR") {
+        return PathBuf::from(p);
+    }
+    xdg("XDG_STATE_HOME", ".local/state").join("pomo")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
