@@ -1,5 +1,10 @@
 use crate::session::Kind;
+use std::fs;
+use std::io;
+use std::path::Path;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
+const STATE: &str = "state";
 
 /// Snapshot of the running timer, written whenever it changes so other
 /// `pomo` invocations can report on it.
@@ -61,6 +66,22 @@ impl State {
     }
 }
 
+/// Writes the snapshot atomically so a reader never sees half a file.
+pub fn save(dir: &Path, state: &State) -> io::Result<()> {
+    fs::create_dir_all(dir)?;
+    let tmp = dir.join(format!("{STATE}.{}", std::process::id()));
+    fs::write(&tmp, state.to_text())?;
+    fs::rename(tmp, dir.join(STATE))
+}
+
+pub fn load(dir: &Path) -> Option<State> {
+    State::parse(&fs::read_to_string(dir.join(STATE)).ok()?)
+}
+
+pub fn clear(dir: &Path) {
+    let _ = fs::remove_file(dir.join(STATE));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -88,5 +109,20 @@ mod tests {
         assert_eq!(s.remaining(1_010_000), Duration::from_secs(230));
         let paused = State { paused: true, ..s };
         assert_eq!(paused.remaining(9_999_999), Duration::from_secs(240));
+    }
+
+    fn tmp_dir(name: &str) -> std::path::PathBuf {
+        std::env::temp_dir().join(format!("pomo-{name}-{}", std::process::id()))
+    }
+
+    #[test]
+    fn save_load_clear() {
+        let dir = tmp_dir("state");
+        assert_eq!(load(&dir), None);
+        save(&dir, &sample()).unwrap();
+        assert_eq!(load(&dir), Some(sample()));
+        clear(&dir);
+        assert_eq!(load(&dir), None);
+        fs::remove_dir_all(dir).unwrap();
     }
 }
