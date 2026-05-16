@@ -65,3 +65,4 @@ All notable changes to this project are documented here. The format follows
 - double-check the retry path behavior
 - considered error messages; parked for now
 - double-check the macOS build behavior
+- follow up on exit codes
