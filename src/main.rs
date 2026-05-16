@@ -87,11 +87,7 @@ fn status() -> Result<(), String> {
         println!("not running");
         return Ok(());
     };
-    let left = duration::ceil_secs(state.remaining(remote::now_ms()));
-    let mut line = format!("{} {}", state.kind.label(), duration::clock(left));
-    if state.paused {
-        line.push_str(" (paused)");
-    }
-    println!("{line}");
+    let left = state.remaining(remote::now_ms());
+    println!("{}", bar::plain(state.kind, left, state.paused));
     Ok(())
 }
