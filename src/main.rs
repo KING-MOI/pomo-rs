@@ -44,7 +44,7 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     }
     config.validate()?;
     let log_path = paths::log_file(config.log_file.as_deref());
-    run::run(&config, args.count, &log_path).map_err(|e| e.to_string())
+    run::run(&config, args.count, &log_path, &paths::state_dir()).map_err(|e| e.to_string())
 }
 
 fn stats(days: u32, json: bool) -> Result<(), String> {

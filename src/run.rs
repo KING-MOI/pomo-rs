@@ -4,6 +4,7 @@ use crate::duration;
 use crate::keys::{self, Key};
 use crate::log::{self, Entry};
 use crate::notify;
+use crate::remote::{self, State};
 use crate::session::{Cycle, Kind};
 use crate::timer::Timer;
 use std::io::{self, IsTerminal, Write};
@@ -24,13 +25,19 @@ enum Outcome {
 struct Runner<'a, W: Write> {
     config: &'a Config,
     log_path: &'a Path,
+    state_dir: &'a Path,
     count: Option<u32>,
     keys: Option<&'a Receiver<Key>>,
     live: bool,
     out: W,
 }
 
-pub fn run(config: &Config, count: Option<u32>, log_path: &Path) -> io::Result<()> {
+pub fn run(
+    config: &Config,
+    count: Option<u32>,
+    log_path: &Path,
+    state_dir: &Path,
+) -> io::Result<()> {
     let out = io::stdout();
     let live = out.is_terminal();
     let hide = config.display == Display::Bar && live;
@@ -38,6 +45,7 @@ pub fn run(config: &Config, count: Option<u32>, log_path: &Path) -> io::Result<(
     let mut r = Runner {
         config,
         log_path,
+        state_dir,
         count,
         keys: listener.as_ref().map(|(_, rx)| rx),
         live,
@@ -50,6 +58,7 @@ pub fn run(config: &Config, count: Option<u32>, log_path: &Path) -> io::Result<(
         writeln!(r.out, "space pause · s skip · + minute · r restart · q quit")?;
     }
     let result = r.cycle_loop();
+    remote::clear(state_dir);
     if hide {
         write!(r.out, "{}", bar::SHOW_CURSOR)?;
         r.out.flush()?;
@@ -107,6 +116,7 @@ impl<W: Write> Runner<'_, W> {
 
     fn session(&mut self, kind: Kind, timer: &mut Timer) -> io::Result<Outcome> {
         timer.start(Instant::now());
+        self.publish(kind, timer);
         if !self.live {
             writeln!(self.out, "{} started ({})", kind.label(), duration::clock(timer.length()))?;
         }
@@ -125,10 +135,24 @@ impl<W: Write> Runner<'_, W> {
                 Some(Key::Restart) => timer.restart(Instant::now()),
                 Some(Key::Skip) => return Ok(Outcome::Skipped),
                 Some(Key::Quit) => return Ok(Outcome::Quit),
-                None => {}
+                None => continue,
             }
+            self.publish(kind, timer);
         }
         Ok(Outcome::Finished)
+    }
+
+    /// Best effort: a read-only state dir shouldn't stop the timer.
+    fn publish(&self, kind: Kind, timer: &Timer) {
+        let state = State {
+            pid: std::process::id(),
+            kind,
+            length: timer.length(),
+            elapsed: timer.elapsed(Instant::now()),
+            paused: !timer.is_running(),
+            at: remote::now_ms(),
+        };
+        let _ = remote::save(self.state_dir, &state);
     }
 
     /// Blocks until the user presses space (start) or q (quit). Without a
