@@ -24,6 +24,7 @@ fn main() -> ExitCode {
         Command::Start(args) => start(args),
         Command::Stats { days, json } => stats(days, json),
         Command::Config(cmd) => config_cmd(cmd),
+        Command::Status => status(),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -78,5 +79,19 @@ fn config_cmd(cmd: cli::ConfigCommand) -> Result<(), String> {
             println!("wrote {}", path.display());
         }
     }
+    Ok(())
+}
+
+fn status() -> Result<(), String> {
+    let Some(state) = remote::load(&paths::state_dir()) else {
+        println!("not running");
+        return Ok(());
+    };
+    let left = duration::ceil_secs(state.remaining(remote::now_ms()));
+    let mut line = format!("{} {}", state.kind.label(), duration::clock(left));
+    if state.paused {
+        line.push_str(" (paused)");
+    }
+    println!("{line}");
     Ok(())
 }

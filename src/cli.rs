@@ -22,6 +22,8 @@ pub enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Show what the running timer is doing
+    Status,
     /// Inspect or create the config file
     #[command(subcommand)]
     Config(ConfigCommand),
