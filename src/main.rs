@@ -25,6 +25,11 @@ fn main() -> ExitCode {
         Command::Stats { days, json } => stats(days, json),
         Command::Config(cmd) => config_cmd(cmd),
         Command::Status => status(),
+        Command::Pause => control("pause"),
+        Command::Resume => control("resume"),
+        Command::Toggle => control("toggle"),
+        Command::Skip => control("skip"),
+        Command::Stop => control("stop"),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -90,4 +95,12 @@ fn status() -> Result<(), String> {
     let left = state.remaining(remote::now_ms());
     println!("{}", bar::plain(state.kind, left, state.paused));
     Ok(())
+}
+
+fn control(command: &str) -> Result<(), String> {
+    let dir = paths::state_dir();
+    if remote::load(&dir).is_none() {
+        return Err("no timer is running".into());
+    }
+    remote::send(&dir, command).map_err(|e| e.to_string())
 }

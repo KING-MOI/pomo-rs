@@ -24,6 +24,16 @@ pub enum Command {
     },
     /// Show what the running timer is doing
     Status,
+    /// Pause the running timer
+    Pause,
+    /// Resume a paused timer
+    Resume,
+    /// Pause or resume the running timer
+    Toggle,
+    /// Skip to the next session
+    Skip,
+    /// Stop the running timer
+    Stop,
     /// Inspect or create the config file
     #[command(subcommand)]
     Config(ConfigCommand),
