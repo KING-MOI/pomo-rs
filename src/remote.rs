@@ -5,6 +5,7 @@ use std::path::Path;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const STATE: &str = "state";
+const CONTROL: &str = "control";
 
 /// Snapshot of the running timer, written whenever it changes so other
 /// `pomo` invocations can report on it.
@@ -82,6 +83,22 @@ pub fn clear(dir: &Path) {
     let _ = fs::remove_file(dir.join(STATE));
 }
 
+/// Leaves a command for the running timer to pick up on its next tick.
+pub fn send(dir: &Path, command: &str) -> io::Result<()> {
+    fs::create_dir_all(dir)?;
+    let tmp = dir.join(format!("{CONTROL}.{}", std::process::id()));
+    fs::write(&tmp, command)?;
+    fs::rename(tmp, dir.join(CONTROL))
+}
+
+/// Takes the pending command, if any, so it only runs once.
+pub fn take(dir: &Path) -> Option<String> {
+    let path = dir.join(CONTROL);
+    let text = fs::read_to_string(&path).ok()?;
+    fs::remove_file(&path).ok()?;
+    Some(text.trim().to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -123,6 +140,16 @@ mod tests {
         assert_eq!(load(&dir), Some(sample()));
         clear(&dir);
         assert_eq!(load(&dir), None);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn commands_are_taken_once() {
+        let dir = tmp_dir("control");
+        assert_eq!(take(&dir), None);
+        send(&dir, "skip").unwrap();
+        assert_eq!(take(&dir).as_deref(), Some("skip"));
+        assert_eq!(take(&dir), None);
         fs::remove_dir_all(dir).unwrap();
     }
 }
