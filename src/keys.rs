@@ -10,6 +10,8 @@ pub enum Key {
     Quit,
     Extend,
     Restart,
+    Pause,
+    Resume,
 }
 
 impl Key {
@@ -77,6 +79,23 @@ pub fn listen() -> Option<(RawMode, Receiver<Key>)> {
     Some((raw, rx))
 }
 
+impl std::str::FromStr for Key {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Key, String> {
+        Ok(match s {
+            "toggle" => Key::Toggle,
+            "pause" => Key::Pause,
+            "resume" => Key::Resume,
+            "skip" => Key::Skip,
+            "stop" => Key::Quit,
+            "extend" => Key::Extend,
+            "restart" => Key::Restart,
+            _ => return Err(format!("unknown command: {s:?}")),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -91,5 +110,12 @@ mod tests {
         assert_eq!(Key::from_byte(b'+'), Some(Key::Extend));
         assert_eq!(Key::from_byte(b'r'), Some(Key::Restart));
         assert_eq!(Key::from_byte(b'x'), None);
+    }
+
+    #[test]
+    fn parses_remote_command_names() {
+        assert_eq!("pause".parse::<Key>(), Ok(Key::Pause));
+        assert_eq!("stop".parse::<Key>(), Ok(Key::Quit));
+        assert!("dance".parse::<Key>().is_err());
     }
 }

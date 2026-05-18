@@ -129,8 +129,11 @@ impl<W: Write> Runner<'_, W> {
                     None
                 }
             };
+            let key = key.or_else(|| remote::take(self.state_dir)?.parse().ok());
             match key {
                 Some(Key::Toggle) => timer.toggle(Instant::now()),
+                Some(Key::Pause) => timer.pause(Instant::now()),
+                Some(Key::Resume) => timer.start(Instant::now()),
                 Some(Key::Extend) => timer.extend(Duration::from_secs(60)),
                 Some(Key::Restart) => timer.restart(Instant::now()),
                 Some(Key::Skip) => return Ok(Outcome::Skipped),
