@@ -168,13 +168,17 @@ impl<W: Write> Runner<'_, W> {
         write!(self.out, "press space to start {}", next.label())?;
         self.out.flush()?;
         loop {
-            match rx.recv() {
-                Ok(Key::Toggle | Key::Skip) => break,
-                Ok(Key::Quit) | Err(_) => {
+            let key = rx
+                .recv_timeout(TICK)
+                .ok()
+                .or_else(|| remote::take(self.state_dir)?.parse().ok());
+            match key {
+                Some(Key::Toggle | Key::Resume | Key::Skip) => break,
+                Some(Key::Quit) => {
                     writeln!(self.out)?;
                     return Ok(false);
                 }
-                Ok(_) => {}
+                _ => {}
             }
         }
         write!(self.out, "{}", bar::CLEAR_LINE)?;
