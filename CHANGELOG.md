@@ -42,3 +42,4 @@ All notable changes to this project are documented here. The format follows
 - double-check release checklist behavior
 - follow up on release checklist
 - considered cleanup logic; parked for now
+- double-check link checker behavior
