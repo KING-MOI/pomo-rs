@@ -75,8 +75,19 @@ pub fn save(dir: &Path, state: &State) -> io::Result<()> {
     fs::rename(tmp, dir.join(STATE))
 }
 
+/// Loads the snapshot, ignoring it if the process that wrote it is gone
+/// (e.g. killed with SIGKILL before it could clean up).
 pub fn load(dir: &Path) -> Option<State> {
-    State::parse(&fs::read_to_string(dir.join(STATE)).ok()?)
+    let state = State::parse(&fs::read_to_string(dir.join(STATE)).ok()?)?;
+    alive(state.pid).then_some(state)
+}
+
+fn alive(pid: u32) -> bool {
+    std::process::Command::new("kill")
+        .args(["-0", &pid.to_string()])
+        .stderr(std::process::Stdio::null())
+        .status()
+        .is_ok_and(|s| s.success())
 }
 
 pub fn clear(dir: &Path) {
@@ -105,7 +116,7 @@ mod tests {
 
     fn sample() -> State {
         State {
-            pid: 42,
+            pid: std::process::id(),
             kind: Kind::ShortBreak,
             length: Duration::from_secs(300),
             elapsed: Duration::from_secs(60),
@@ -139,6 +150,18 @@ mod tests {
         save(&dir, &sample()).unwrap();
         assert_eq!(load(&dir), Some(sample()));
         clear(&dir);
+        assert_eq!(load(&dir), None);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn state_from_a_dead_process_is_ignored() {
+        let dir = tmp_dir("stale");
+        let dead = State {
+            pid: u32::MAX - 1,
+            ..sample()
+        };
+        save(&dir, &dead).unwrap();
         assert_eq!(load(&dir), None);
         fs::remove_dir_all(dir).unwrap();
     }
