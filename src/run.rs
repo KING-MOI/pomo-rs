@@ -9,7 +9,7 @@ use crate::session::{Cycle, Kind};
 use crate::timer::Timer;
 use std::io::{self, IsTerminal, Write};
 use std::path::Path;
-use std::sync::mpsc::Receiver;
+use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -122,15 +122,7 @@ impl<W: Write> Runner<'_, W> {
         }
         while !timer.is_done(Instant::now()) {
             self.draw(kind, timer)?;
-            let key = match self.keys {
-                Some(rx) => rx.recv_timeout(TICK).ok(),
-                None => {
-                    thread::sleep(TICK);
-                    None
-                }
-            };
-            let key = key.or_else(|| remote::take(self.state_dir)?.parse().ok());
-            match key {
+            match self.next_key() {
                 Some(Key::Toggle) => timer.toggle(Instant::now()),
                 Some(Key::Pause) => timer.pause(Instant::now()),
                 Some(Key::Resume) => timer.start(Instant::now()),
@@ -143,6 +135,21 @@ impl<W: Write> Runner<'_, W> {
             self.publish(kind, timer);
         }
         Ok(Outcome::Finished)
+    }
+
+    /// Waits up to one tick for a keypress, then checks the control file.
+    /// Once stdin is closed the channel disconnects and returns instantly,
+    /// so sleep in that case too rather than spinning.
+    fn next_key(&self) -> Option<Key> {
+        let key = match self.keys.map(|rx| rx.recv_timeout(TICK)) {
+            Some(Ok(k)) => Some(k),
+            Some(Err(RecvTimeoutError::Timeout)) => None,
+            Some(Err(RecvTimeoutError::Disconnected)) | None => {
+                thread::sleep(TICK);
+                None
+            }
+        };
+        key.or_else(|| remote::take(self.state_dir)?.parse().ok())
     }
 
     /// Best effort: a read-only state dir shouldn't stop the timer.
@@ -162,17 +169,13 @@ impl<W: Write> Runner<'_, W> {
     /// terminal to read keys from there is nobody to wait for, so it
     /// starts straight away.
     fn wait_for_start(&mut self, next: Kind) -> io::Result<bool> {
-        let Some(rx) = self.keys else {
+        if self.keys.is_none() {
             return Ok(true);
-        };
+        }
         write!(self.out, "press space to start {}", next.label())?;
         self.out.flush()?;
         loop {
-            let key = rx
-                .recv_timeout(TICK)
-                .ok()
-                .or_else(|| remote::take(self.state_dir)?.parse().ok());
-            match key {
+            match self.next_key() {
                 Some(Key::Toggle | Key::Resume | Key::Skip) => break,
                 Some(Key::Quit) => {
                     writeln!(self.out)?;
