@@ -14,3 +14,4 @@ All notable changes to this project are documented here. The format follows
 - keyboard controls and remote `pause|resume|toggle|skip|stop|status`
 - daily goal, hooks, terminal title and shell completions
 - flaky test observed while testing
+- considered the macOS build; parked for now
