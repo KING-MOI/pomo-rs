@@ -49,8 +49,12 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
         config.color = false;
     }
     config.validate()?;
+    let state_dir = paths::state_dir();
+    if let Some(other) = remote::load(&state_dir) {
+        return Err(format!("a timer is already running (pid {})", other.pid));
+    }
     let log_path = paths::log_file(config.log_file.as_deref());
-    run::run(&config, args.count, &log_path, &paths::state_dir()).map_err(|e| e.to_string())
+    run::run(&config, args.count, &log_path, &state_dir).map_err(|e| e.to_string())
 }
 
 fn stats(days: u32, json: bool) -> Result<(), String> {
