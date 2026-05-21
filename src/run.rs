@@ -172,6 +172,7 @@ impl<W: Write> Runner<'_, W> {
         if self.keys.is_none() {
             return Ok(true);
         }
+        self.publish(next, &Timer::new(next.length(self.config)));
         write!(self.out, "press space to start {}", next.label())?;
         self.out.flush()?;
         loop {
