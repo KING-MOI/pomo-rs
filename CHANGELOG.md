@@ -37,3 +37,4 @@ All notable changes to this project are documented here. The format follows
 - considered error messages; parked for now
 - follow up on ci caching
 - double-check error messages behavior
+- follow up on release checklist
