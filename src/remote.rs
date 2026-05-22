@@ -110,6 +110,23 @@ pub fn take(dir: &Path) -> Option<String> {
     Some(text.trim().to_string())
 }
 
+/// Fills `{kind}`, `{remaining}`, `{state}` and `{percent}` in a status
+/// template, for status bars like tmux or sketchybar.
+pub fn format(template: &str, s: &State, now: u128) -> String {
+    let left = crate::duration::ceil_secs(s.remaining(now));
+    let done = s.length.saturating_sub(left);
+    let percent = if s.length.is_zero() {
+        100
+    } else {
+        done.as_millis() * 100 / s.length.as_millis()
+    };
+    template
+        .replace("{kind}", s.kind.label())
+        .replace("{remaining}", &crate::duration::clock(left))
+        .replace("{state}", if s.paused { "paused" } else { "running" })
+        .replace("{percent}", &percent.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -129,6 +146,13 @@ mod tests {
     fn text_round_trip() {
         assert_eq!(State::parse(&sample().to_text()), Some(sample()));
         assert_eq!(State::parse("pid=1\n"), None);
+    }
+
+    #[test]
+    fn format_fills_placeholders() {
+        let s = sample();
+        let out = format("{kind} {remaining} {state} {percent}%", &s, s.at);
+        assert_eq!(out, "short break 04:00 running 20%");
     }
 
     #[test]

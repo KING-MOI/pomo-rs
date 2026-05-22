@@ -23,7 +23,11 @@ pub enum Command {
         json: bool,
     },
     /// Show what the running timer is doing
-    Status,
+    Status {
+        /// Template with {kind}, {remaining}, {state} and {percent}
+        #[arg(short, long)]
+        format: Option<String>,
+    },
     /// Pause the running timer
     Pause,
     /// Resume a paused timer
