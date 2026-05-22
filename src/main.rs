@@ -93,7 +93,9 @@ fn config_cmd(cmd: cli::ConfigCommand) -> Result<(), String> {
 
 fn status(format: Option<String>) -> Result<(), String> {
     let Some(state) = remote::load(&paths::state_dir()) else {
-        println!("not running");
+        if format.is_none() {
+            println!("not running");
+        }
         return Ok(());
     };
     let now = remote::now_ms();
