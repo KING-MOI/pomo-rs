@@ -25,7 +25,7 @@ impl Entry {
             round_secs(self.planned),
             round_secs(self.actual)
         );
-        if let Some(t) = &self.task {
+        if let Some(t) = self.task.as_deref().filter(|t| !t.is_empty()) {
             line.push('\t');
             line.extend(t.chars().filter(|c| !c.is_control()));
         }
@@ -41,7 +41,7 @@ impl Entry {
         let f: Vec<&str> = line.split('\t').collect();
         let (start, kind, planned, actual, task) = match f[..] {
             [s, k, p, a] => (s, k, p, a, None),
-            [s, k, p, a, t] => (s, k, p, a, Some(t.to_string())),
+            [s, k, p, a, t] => (s, k, p, a, Some(t.to_string()).filter(|t| !t.is_empty())),
             _ => return Err(format!("expected 4 or 5 fields, got {}", f.len())),
         };
         let secs = |s: &str| {
@@ -124,6 +124,17 @@ mod tests {
         let line = e.to_line();
         assert!(line.ends_with("\t1500\twritereport"));
         assert_eq!(Entry::parse(&line).unwrap().task.as_deref(), Some("writereport"));
+    }
+
+    #[test]
+    fn empty_task_is_none() {
+        let e = Entry {
+            task: Some(String::new()),
+            ..sample()
+        };
+        assert_eq!(e.to_line(), sample().to_line());
+        let parsed = Entry::parse(&format!("{}\t", sample().to_line())).unwrap();
+        assert_eq!(parsed.task, None);
     }
 
     #[test]
