@@ -95,6 +95,7 @@ impl<W: Write> Runner<'_, W> {
                     kind,
                     planned: timer.length(),
                     actual,
+                    task: None,
                 },
             )?;
             if outcome == Outcome::Quit {

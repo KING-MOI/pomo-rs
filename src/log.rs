@@ -12,17 +12,24 @@ pub struct Entry {
     pub kind: Kind,
     pub planned: Duration,
     pub actual: Duration,
+    /// Optional label for what the session was spent on.
+    pub task: Option<String>,
 }
 
 impl Entry {
     pub fn to_line(&self) -> String {
-        format!(
+        let mut line = format!(
             "{}\t{}\t{}\t{}",
             self.start.to_rfc3339_opts(SecondsFormat::Secs, false),
             self.kind.key(),
             round_secs(self.planned),
             round_secs(self.actual)
-        )
+        );
+        if let Some(t) = &self.task {
+            line.push('\t');
+            line.extend(t.chars().filter(|c| !c.is_control()));
+        }
+        line
     }
 
     /// Whether the session ran for its full planned length.
@@ -32,8 +39,10 @@ impl Entry {
 
     pub fn parse(line: &str) -> Result<Entry, String> {
         let f: Vec<&str> = line.split('\t').collect();
-        let [start, kind, planned, actual] = f[..] else {
-            return Err(format!("expected 4 fields, got {}", f.len()));
+        let (start, kind, planned, actual, task) = match f[..] {
+            [s, k, p, a] => (s, k, p, a, None),
+            [s, k, p, a, t] => (s, k, p, a, Some(t.to_string())),
+            _ => return Err(format!("expected 4 or 5 fields, got {}", f.len())),
         };
         let secs = |s: &str| {
             s.parse()
@@ -45,6 +54,7 @@ impl Entry {
             kind: kind.parse()?,
             planned: secs(planned)?,
             actual: secs(actual)?,
+            task,
         })
     }
 }
@@ -94,6 +104,7 @@ mod tests {
             kind: Kind::Work,
             planned: Duration::from_secs(1500),
             actual: Duration::from_secs(1500),
+            task: None,
         }
     }
 
@@ -102,6 +113,17 @@ mod tests {
         let line = sample().to_line();
         assert_eq!(line, "2026-11-17T09:00:00+05:30\twork\t1500\t1500");
         assert_eq!(Entry::parse(&line).unwrap(), sample());
+    }
+
+    #[test]
+    fn task_is_an_optional_fifth_field() {
+        let e = Entry {
+            task: Some("write\treport\n".into()),
+            ..sample()
+        };
+        let line = e.to_line();
+        assert!(line.ends_with("\t1500\twritereport"));
+        assert_eq!(Entry::parse(&line).unwrap().task.as_deref(), Some("writereport"));
     }
 
     #[test]
@@ -136,7 +158,7 @@ mod tests {
         let (entries, warnings) = read(&path).unwrap();
         assert_eq!(entries.len(), 2);
         assert_eq!(warnings.len(), 1);
-        assert!(warnings[0].ends_with(":2: expected 4 fields, got 1"));
+        assert!(warnings[0].ends_with(":2: expected 4 or 5 fields, got 1"));
         fs::remove_file(path).unwrap();
     }
 

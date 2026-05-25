@@ -194,6 +194,7 @@ pub(crate) mod tests {
             kind,
             planned: Duration::from_secs(planned),
             actual: Duration::from_secs(actual),
+            task: None,
         }
     }
 
