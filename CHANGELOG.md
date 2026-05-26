@@ -26,3 +26,4 @@ All notable changes to this project are documented here. The format follows
 - double-check the macOS build behavior
 - considered the retry path; parked for now
 - considered error messages; parked for now
+- slow start observed while testing
