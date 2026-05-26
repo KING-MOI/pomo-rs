@@ -122,7 +122,11 @@ impl<W: Write> Runner<'_, W> {
         timer.start(Instant::now());
         self.publish(kind, timer);
         if !self.live {
-            writeln!(self.out, "{} started ({})", kind.label(), duration::clock(timer.length()))?;
+            write!(self.out, "{} started ({})", kind.label(), duration::clock(timer.length()))?;
+            match self.task.filter(|_| kind == Kind::Work) {
+                Some(t) => writeln!(self.out, ": {t}")?,
+                None => writeln!(self.out)?,
+            }
         }
         while !timer.is_done(Instant::now()) {
             self.draw(kind, timer)?;
