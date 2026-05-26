@@ -69,6 +69,10 @@ pub struct StartArgs {
     #[arg(long, value_enum)]
     pub notify: Option<crate::notify::Method>,
 
+    /// What you're working on; saved with each session in the log
+    #[arg(short, long)]
+    pub task: Option<String>,
+
     /// Stop after this many work sessions
     #[arg(short = 'n', long)]
     pub count: Option<u32>,

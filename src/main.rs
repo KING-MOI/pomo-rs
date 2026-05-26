@@ -54,7 +54,7 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
         return Err(format!("a timer is already running (pid {})", other.pid));
     }
     let log_path = paths::log_file(config.log_file.as_deref());
-    run::run(&config, args.count, &log_path, &state_dir).map_err(|e| e.to_string())
+    run::run(&config, args.task.as_deref(), args.count, &log_path, &state_dir).map_err(|e| e.to_string())
 }
 
 fn stats(days: u32, json: bool) -> Result<(), String> {

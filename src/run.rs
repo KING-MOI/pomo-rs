@@ -26,6 +26,7 @@ struct Runner<'a, W: Write> {
     config: &'a Config,
     log_path: &'a Path,
     state_dir: &'a Path,
+    task: Option<&'a str>,
     count: Option<u32>,
     keys: Option<&'a Receiver<Key>>,
     live: bool,
@@ -34,6 +35,7 @@ struct Runner<'a, W: Write> {
 
 pub fn run(
     config: &Config,
+    task: Option<&str>,
     count: Option<u32>,
     log_path: &Path,
     state_dir: &Path,
@@ -46,6 +48,7 @@ pub fn run(
         config,
         log_path,
         state_dir,
+        task,
         count,
         keys: listener.as_ref().map(|(_, rx)| rx),
         live,
@@ -95,7 +98,7 @@ impl<W: Write> Runner<'_, W> {
                     kind,
                     planned: timer.length(),
                     actual,
-                    task: None,
+                    task: self.task.map(str::to_string),
                 },
             )?;
             if outcome == Outcome::Quit {
