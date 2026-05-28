@@ -84,6 +84,18 @@ pub fn daily_average(days: &BTreeMap<NaiveDate, Totals>) -> Duration {
     days.values().map(|t| t.focused).sum::<Duration>() / active
 }
 
+/// Work totals per task label, most focused first. Unlabeled sessions
+/// are grouped under `None`.
+pub fn per_task(entries: &[Entry]) -> Vec<(Option<&str>, Totals)> {
+    let mut map: BTreeMap<Option<&str>, Totals> = BTreeMap::new();
+    for e in entries.iter().filter(|e| e.kind == Kind::Work) {
+        map.entry(e.task.as_deref()).or_default().add(e);
+    }
+    let mut list: Vec<_> = map.into_iter().collect();
+    list.sort_by(|a, b| b.1.focused.cmp(&a.1.focused));
+    list
+}
+
 /// Totals since the most recent Monday, today included.
 pub fn this_week(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Totals {
     let monday = today.week(chrono::Weekday::Mon).first_day();
@@ -331,6 +343,27 @@ last 3 days
         ];
         let w = this_week(&per_day(&log), day("2026-11-18"));
         assert_eq!(w.sessions, 2);
+    }
+
+    fn tagged(start: &str, task: &str, secs: u64) -> Entry {
+        Entry {
+            task: Some(task.into()),
+            ..entry(start, Kind::Work, secs, secs)
+        }
+    }
+
+    #[test]
+    fn per_task_sorts_by_focus() {
+        let log = [
+            tagged("2026-11-17T09:00:00Z", "docs", 600),
+            tagged("2026-11-17T10:00:00Z", "code", 1500),
+            entry("2026-11-17T11:00:00Z", Kind::Work, 900, 900),
+            tagged("2026-11-17T12:00:00Z", "docs", 600),
+        ];
+        let tasks = per_task(&log);
+        let names: Vec<_> = tasks.iter().map(|(t, _)| *t).collect();
+        assert_eq!(names, [Some("code"), Some("docs"), None]);
+        assert_eq!(tasks[1].1.sessions, 2);
     }
 
     #[test]
