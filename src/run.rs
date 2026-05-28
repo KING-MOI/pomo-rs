@@ -215,6 +215,9 @@ impl<W: Write> Runner<'_, W> {
             ),
         };
         write!(self.out, "{}{}", bar::CLEAR_LINE, line)?;
+        if let Some(t) = self.task.filter(|_| kind == Kind::Work) {
+            write!(self.out, " · {t}")?;
+        }
         self.out.flush()
     }
 }
