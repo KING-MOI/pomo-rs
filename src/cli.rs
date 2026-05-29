@@ -25,6 +25,10 @@ pub enum Command {
         /// Only count sessions with this task label
         #[arg(short, long)]
         task: Option<String>,
+
+        /// Only count sessions on or after this date (YYYY-MM-DD)
+        #[arg(long)]
+        since: Option<chrono::NaiveDate>,
     },
     /// Show what the running timer is doing
     Status {
