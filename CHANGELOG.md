@@ -23,3 +23,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on the macOS build
 - follow up on release checklist
 - edge case observed while testing
+- double-check the macOS build behavior
