@@ -136,6 +136,19 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
         let _ = writeln!(out, "best day  {:>13}  {}", d.to_string(), human(t.focused));
         let _ = writeln!(out, "daily avg {:>13}", human(daily_average(&days)));
     }
+    let tasks = per_task(entries);
+    if tasks.iter().any(|(t, _)| t.is_some()) {
+        let _ = writeln!(out, "\nby task");
+        for (name, t) in &tasks {
+            let _ = writeln!(
+                out,
+                "{:<20}  {:>3}  {}",
+                name.unwrap_or("(none)"),
+                t.sessions,
+                human(t.focused)
+            );
+        }
+    }
     if last > 0 {
         let _ = writeln!(out, "\nlast {last} days");
         let recent: Vec<(NaiveDate, &Totals)> = recent(today, last)
@@ -364,6 +377,15 @@ last 3 days
         let names: Vec<_> = tasks.iter().map(|(t, _)| *t).collect();
         assert_eq!(names, [Some("code"), Some("docs"), None]);
         assert_eq!(tasks[1].1.sessions, 2);
+    }
+
+    #[test]
+    fn report_lists_tasks_only_when_labelled() {
+        let plain = [entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500)];
+        assert!(!report(&plain, day("2026-11-17"), 0).contains("by task"));
+        let labelled = [tagged("2026-11-17T09:00:00Z", "code", 1500)];
+        let r = report(&labelled, day("2026-11-17"), 0);
+        assert!(r.contains("\nby task\ncode                    1  25m\n"), "{r}");
     }
 
     #[test]
