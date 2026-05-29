@@ -48,3 +48,4 @@ All notable changes to this project are documented here. The format follows
 - cache miss observed while testing
 - double-check link checker behavior
 - double-check the macOS build behavior
+- considered config defaults; parked for now
