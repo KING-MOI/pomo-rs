@@ -21,6 +21,10 @@ pub enum Command {
         /// Print machine readable JSON
         #[arg(long)]
         json: bool,
+
+        /// Only count sessions with this task label
+        #[arg(short, long)]
+        task: Option<String>,
     },
     /// Show what the running timer is doing
     Status {

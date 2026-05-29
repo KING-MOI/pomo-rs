@@ -22,7 +22,7 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command.unwrap_or(Command::Start(Default::default())) {
         Command::Start(args) => start(args),
-        Command::Stats { days, json } => stats(days, json),
+        Command::Stats { days, json, task } => stats(days, json, task),
         Command::Config(cmd) => config_cmd(cmd),
         Command::Status { format } => status(format),
         Command::Pause => control("pause"),
@@ -57,11 +57,15 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     run::run(&config, args.task.as_deref(), args.count, &log_path, &state_dir).map_err(|e| e.to_string())
 }
 
-fn stats(days: u32, json: bool) -> Result<(), String> {
+fn stats(days: u32, json: bool, task: Option<String>) -> Result<(), String> {
     let config = Config::load(&paths::config_file())?;
     let (entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
     for w in warnings {
         eprintln!("pomo: skipping {w}");
+    }
+    let mut entries = entries;
+    if let Some(t) = &task {
+        entries.retain(|e| e.task.as_ref() == Some(t));
     }
     let today = chrono::Local::now().date_naive();
     if json {
