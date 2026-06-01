@@ -59,11 +59,10 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
 
 fn stats(args: cli::StatsArgs) -> Result<(), String> {
     let config = Config::load(&paths::config_file())?;
-    let (entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
+    let (mut entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
     for w in warnings {
         eprintln!("pomo: skipping {w}");
     }
-    let mut entries = entries;
     if let Some(t) = &args.task {
         entries.retain(|e| e.task.as_ref() == Some(t));
     }
