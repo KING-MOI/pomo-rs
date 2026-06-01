@@ -22,12 +22,7 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command.unwrap_or(Command::Start(Default::default())) {
         Command::Start(args) => start(args),
-        Command::Stats {
-            days,
-            json,
-            task,
-            since,
-        } => stats(days, json, task, since),
+        Command::Stats(args) => stats(args),
         Command::Config(cmd) => config_cmd(cmd),
         Command::Status { format } => status(format),
         Command::Pause => control("pause"),
@@ -62,29 +57,24 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     run::run(&config, args.task.as_deref(), args.count, &log_path, &state_dir).map_err(|e| e.to_string())
 }
 
-fn stats(
-    days: u32,
-    json: bool,
-    task: Option<String>,
-    since: Option<chrono::NaiveDate>,
-) -> Result<(), String> {
+fn stats(args: cli::StatsArgs) -> Result<(), String> {
     let config = Config::load(&paths::config_file())?;
     let (entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
     for w in warnings {
         eprintln!("pomo: skipping {w}");
     }
     let mut entries = entries;
-    if let Some(t) = &task {
+    if let Some(t) = &args.task {
         entries.retain(|e| e.task.as_ref() == Some(t));
     }
-    if let Some(d) = since {
+    if let Some(d) = args.since {
         entries.retain(|e| e.start.date_naive() >= d);
     }
     let today = chrono::Local::now().date_naive();
-    if json {
-        println!("{}", stats::json(&entries, today, days));
+    if args.json {
+        println!("{}", stats::json(&entries, today, args.days));
     } else {
-        print!("{}", stats::report(&entries, today, days));
+        print!("{}", stats::report(&entries, today, args.days));
     }
     Ok(())
 }

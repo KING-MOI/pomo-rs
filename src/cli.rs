@@ -13,23 +13,7 @@ pub enum Command {
     /// Start a pomodoro cycle
     Start(StartArgs),
     /// Show focus time, streaks and a per-day summary
-    Stats {
-        /// How many recent days to list
-        #[arg(short, long, default_value_t = 7)]
-        days: u32,
-
-        /// Print machine readable JSON
-        #[arg(long)]
-        json: bool,
-
-        /// Only count sessions with this task label
-        #[arg(short, long)]
-        task: Option<String>,
-
-        /// Only count sessions on or after this date (YYYY-MM-DD)
-        #[arg(long)]
-        since: Option<chrono::NaiveDate>,
-    },
+    Stats(StatsArgs),
     /// Show what the running timer is doing
     Status {
         /// Template with {kind}, {remaining}, {state} and {percent}
@@ -84,6 +68,25 @@ pub struct StartArgs {
     /// Stop after this many work sessions
     #[arg(short = 'n', long)]
     pub count: Option<u32>,
+}
+
+#[derive(Args)]
+pub struct StatsArgs {
+    /// How many recent days to list
+    #[arg(short, long, default_value_t = 7)]
+    pub days: u32,
+
+    /// Print machine readable JSON
+    #[arg(long)]
+    pub json: bool,
+
+    /// Only count sessions with this task label
+    #[arg(short, long)]
+    pub task: Option<String>,
+
+    /// Only count sessions on or after this date (YYYY-MM-DD)
+    #[arg(long)]
+    pub since: Option<chrono::NaiveDate>,
 }
 
 #[derive(Subcommand)]
