@@ -52,3 +52,10 @@ fn help_lists_subcommands() {
         assert!(stdout(&o).contains(sub), "missing {sub}");
     }
 }
+
+#[test]
+fn stats_on_an_empty_log() {
+    let o = Sandbox::new("empty").cmd(&["stats", "-d", "0"]);
+    assert!(o.status.success());
+    assert!(stdout(&o).starts_with("today        0 sessions  0m\n"), "{}", stdout(&o));
+}
