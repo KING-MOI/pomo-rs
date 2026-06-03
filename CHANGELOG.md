@@ -71,3 +71,4 @@ All notable changes to this project are documented here. The format follows
 - double-check the macOS build behavior
 - cache miss observed while testing
 - considered ci caching; parked for now
+- double-check exit codes behavior
