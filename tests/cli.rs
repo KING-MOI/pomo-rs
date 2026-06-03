@@ -59,3 +59,19 @@ fn stats_on_an_empty_log() {
     assert!(o.status.success());
     assert!(stdout(&o).starts_with("today        0 sessions  0m\n"), "{}", stdout(&o));
 }
+
+#[test]
+fn stats_reads_the_log() {
+    let sb = Sandbox::new("stats");
+    fs::write(
+        sb.log(),
+        "2020-01-01T09:00:00+00:00\twork\t1500\t1500\tcode\n\
+         2020-01-01T09:30:00+00:00\tshort_break\t300\t300\n\
+         2020-01-02T09:00:00+00:00\twork\t1500\t1500\n",
+    )
+    .unwrap();
+    let out = stdout(&sb.cmd(&["stats", "-d", "0"]));
+    assert!(out.contains("all time     2 sessions  50m"), "{out}");
+    assert!(out.contains("longest 2"), "{out}");
+    assert!(out.contains("code"), "{out}");
+}
