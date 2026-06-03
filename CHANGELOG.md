@@ -74,3 +74,4 @@ All notable changes to this project are documented here. The format follows
 - double-check exit codes behavior
 - double-check the macOS build behavior
 - double-check cleanup logic behavior
+- double-check the retry path behavior
