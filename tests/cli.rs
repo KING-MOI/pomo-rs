@@ -75,3 +75,20 @@ fn stats_reads_the_log() {
     assert!(out.contains("longest 2"), "{out}");
     assert!(out.contains("code"), "{out}");
 }
+
+#[test]
+fn config_show_prints_defaults() {
+    let out = stdout(&Sandbox::new("show").cmd(&["config", "show"]));
+    assert!(out.contains("work = \"25m\""), "{out}");
+    assert!(out.contains("long_break_every = 4"), "{out}");
+}
+
+#[test]
+fn bad_config_is_reported_with_its_path() {
+    let sb = Sandbox::new("badcfg");
+    fs::write(sb.dir.join("config.toml"), "work = \"later\"").unwrap();
+    let o = sb.cmd(&["config", "show"]);
+    assert_eq!(o.status.code(), Some(1));
+    let err = String::from_utf8_lossy(&o.stderr);
+    assert!(err.contains("config.toml"), "{err}");
+}
