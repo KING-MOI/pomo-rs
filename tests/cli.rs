@@ -92,3 +92,13 @@ fn bad_config_is_reported_with_its_path() {
     let err = String::from_utf8_lossy(&o.stderr);
     assert!(err.contains("config.toml"), "{err}");
 }
+
+#[test]
+fn a_short_session_runs_and_is_logged() {
+    let sb = Sandbox::new("run");
+    let o = sb.cmd(&["start", "-w", "1s", "-n", "1", "--notify", "none", "-t", "tests"]);
+    assert!(o.status.success());
+    assert_eq!(stdout(&o), "work started (00:01): tests\nwork done\n");
+    let log = fs::read_to_string(sb.log()).unwrap();
+    assert!(log.trim_end().ends_with("\twork\t1\t1\ttests"), "{log}");
+}
