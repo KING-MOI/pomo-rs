@@ -26,7 +26,11 @@ use std::time::Duration;
 
 /// One frame of the plain display: `work 12:34`.
 pub fn plain(kind: Kind, remaining: Duration, paused: bool) -> String {
-    let mut s = format!("{} {}", kind.label(), duration::clock(duration::ceil_secs(remaining)));
+    let mut s = format!(
+        "{} {}",
+        kind.label(),
+        duration::clock(duration::ceil_secs(remaining))
+    );
     if paused {
         s.push_str(" (paused)");
     }
@@ -108,12 +112,18 @@ mod tests {
 
     #[test]
     fn plain_layout() {
-        assert_eq!(plain(Kind::LongBreak, Duration::from_millis(1500), false), "long break 00:02");
+        assert_eq!(
+            plain(Kind::LongBreak, Duration::from_millis(1500), false),
+            "long break 00:02"
+        );
     }
 
     #[test]
     fn paused_frames_say_so() {
-        assert_eq!(plain(Kind::Work, Duration::from_secs(60), true), "work 01:00 (paused)");
+        assert_eq!(
+            plain(Kind::Work, Duration::from_secs(60), true),
+            "work 01:00 (paused)"
+        );
         let f = frame(Kind::Work, 0.0, Duration::from_secs(60), true, 1, true);
         assert_eq!(f, "work \x1b[90m \x1b[0m 01:00 (paused)");
     }

@@ -2,7 +2,11 @@ use clap::{Args, Parser, Subcommand};
 use std::time::Duration;
 
 #[derive(Parser)]
-#[command(name = "pomo", version, about = "A minimal pomodoro timer for the terminal")]
+#[command(
+    name = "pomo",
+    version,
+    about = "A minimal pomodoro timer for the terminal"
+)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Command>,

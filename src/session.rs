@@ -117,7 +117,9 @@ mod tests {
         use Kind::*;
         assert_eq!(
             seen,
-            [Work, ShortBreak, Work, ShortBreak, Work, ShortBreak, Work, LongBreak, Work]
+            [
+                Work, ShortBreak, Work, ShortBreak, Work, ShortBreak, Work, LongBreak, Work
+            ]
         );
     }
 

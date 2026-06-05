@@ -95,6 +95,9 @@ mod tests {
 
     #[test]
     fn tmux_passthrough_doubles_escapes() {
-        assert_eq!(tmux_wrap("\x1b]9;hi\x07"), "\x1bPtmux;\x1b\x1b]9;hi\x07\x1b\\");
+        assert_eq!(
+            tmux_wrap("\x1b]9;hi\x07"),
+            "\x1bPtmux;\x1b\x1b]9;hi\x07\x1b\\"
+        );
     }
 }

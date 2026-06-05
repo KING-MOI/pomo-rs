@@ -57,7 +57,11 @@ fn help_lists_subcommands() {
 fn stats_on_an_empty_log() {
     let o = Sandbox::new("empty").cmd(&["stats", "-d", "0"]);
     assert!(o.status.success());
-    assert!(stdout(&o).starts_with("today        0 sessions  0m\n"), "{}", stdout(&o));
+    assert!(
+        stdout(&o).starts_with("today        0 sessions  0m\n"),
+        "{}",
+        stdout(&o)
+    );
 }
 
 #[test]
@@ -96,7 +100,9 @@ fn bad_config_is_reported_with_its_path() {
 #[test]
 fn a_short_session_runs_and_is_logged() {
     let sb = Sandbox::new("run");
-    let o = sb.cmd(&["start", "-w", "1s", "-n", "1", "--notify", "none", "-t", "tests"]);
+    let o = sb.cmd(&[
+        "start", "-w", "1s", "-n", "1", "--notify", "none", "-t", "tests",
+    ]);
     assert!(o.status.success());
     assert_eq!(stdout(&o), "work started (00:01): tests\nwork done\n");
     let log = fs::read_to_string(sb.log()).unwrap();

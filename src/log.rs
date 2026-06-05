@@ -123,7 +123,10 @@ mod tests {
         };
         let line = e.to_line();
         assert!(line.ends_with("\t1500\twritereport"));
-        assert_eq!(Entry::parse(&line).unwrap().task.as_deref(), Some("writereport"));
+        assert_eq!(
+            Entry::parse(&line).unwrap().task.as_deref(),
+            Some("writereport")
+        );
     }
 
     #[test]
@@ -164,8 +167,15 @@ mod tests {
     #[test]
     fn bad_lines_become_warnings() {
         let path = std::env::temp_dir().join(format!("pomo-bad-{}.log", std::process::id()));
-        fs::write(&path, format!("{}\ngarbage\n\n{}\n", sample().to_line(), sample().to_line()))
-            .unwrap();
+        fs::write(
+            &path,
+            format!(
+                "{}\ngarbage\n\n{}\n",
+                sample().to_line(),
+                sample().to_line()
+            ),
+        )
+        .unwrap();
         let (entries, warnings) = read(&path).unwrap();
         assert_eq!(entries.len(), 2);
         assert_eq!(warnings.len(), 1);

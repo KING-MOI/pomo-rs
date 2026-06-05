@@ -146,7 +146,10 @@ mod tests {
     #[test]
     fn ceil_rounds_partial_seconds_up() {
         assert_eq!(ceil_secs(Duration::from_millis(1)), Duration::from_secs(1));
-        assert_eq!(ceil_secs(Duration::from_millis(2000)), Duration::from_secs(2));
+        assert_eq!(
+            ceil_secs(Duration::from_millis(2000)),
+            Duration::from_secs(2)
+        );
         assert_eq!(ceil_secs(Duration::ZERO), Duration::ZERO);
     }
 

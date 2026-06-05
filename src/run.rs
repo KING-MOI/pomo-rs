@@ -58,7 +58,10 @@ pub fn run(
         write!(r.out, "{}", bar::HIDE_CURSOR)?;
     }
     if r.keys.is_some() && live {
-        writeln!(r.out, "space pause · s skip · + minute · r restart · q quit")?;
+        writeln!(
+            r.out,
+            "space pause · s skip · + minute · r restart · q quit"
+        )?;
     }
     let result = r.cycle_loop();
     remote::clear(state_dir);
@@ -122,7 +125,12 @@ impl<W: Write> Runner<'_, W> {
         timer.start(Instant::now());
         self.publish(kind, timer);
         if !self.live {
-            write!(self.out, "{} started ({})", kind.label(), duration::clock(timer.length()))?;
+            write!(
+                self.out,
+                "{} started ({})",
+                kind.label(),
+                duration::clock(timer.length())
+            )?;
             match self.task.filter(|_| kind == Kind::Work) {
                 Some(t) => writeln!(self.out, ": {t}")?,
                 None => writeln!(self.out)?,

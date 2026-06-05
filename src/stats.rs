@@ -122,16 +122,31 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
     let none = Totals::default();
     let t = days.get(&today).unwrap_or(&none);
     let mut out = String::new();
-    let _ = writeln!(out, "today     {:>13}  {}", plural(t.sessions, "session"), human(t.focused));
+    let _ = writeln!(
+        out,
+        "today     {:>13}  {}",
+        plural(t.sessions, "session"),
+        human(t.focused)
+    );
     let w = this_week(&days, today);
-    let _ = writeln!(out, "this week {:>13}  {}", plural(w.sessions, "session"), human(w.focused));
+    let _ = writeln!(
+        out,
+        "this week {:>13}  {}",
+        plural(w.sessions, "session"),
+        human(w.focused)
+    );
     let _ = writeln!(
         out,
         "all time  {:>13}  {}",
         plural(all.sessions, "session"),
         human(all.focused)
     );
-    let _ = writeln!(out, "streak    {:>13}  longest {}", plural(st.current, "day"), st.longest);
+    let _ = writeln!(
+        out,
+        "streak    {:>13}  longest {}",
+        plural(st.current, "day"),
+        st.longest
+    );
     if let Some((d, t)) = best_day(&days) {
         let _ = writeln!(out, "best day  {:>13}  {}", d.to_string(), human(t.focused));
         let _ = writeln!(out, "daily avg {:>13}", human(daily_average(&days)));
@@ -154,7 +169,11 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
         let recent: Vec<(NaiveDate, &Totals)> = recent(today, last)
             .map(|d| (d, days.get(&d).unwrap_or(&none)))
             .collect();
-        let max = recent.iter().map(|(_, t)| t.focused).max().unwrap_or_default();
+        let max = recent
+            .iter()
+            .map(|(_, t)| t.focused)
+            .max()
+            .unwrap_or_default();
         for (d, t) in recent {
             let frac = if max.is_zero() {
                 0.0
@@ -276,14 +295,32 @@ pub(crate) mod tests {
     fn days_with_only_skipped_work_break_the_streak() {
         let mut d = days(&["2026-11-15", "2026-11-17"]);
         d.insert(day("2026-11-16"), Totals::default());
-        assert_eq!(streaks(&d, day("2026-11-17")), Streaks { current: 1, longest: 1 });
+        assert_eq!(
+            streaks(&d, day("2026-11-17")),
+            Streaks {
+                current: 1,
+                longest: 1
+            }
+        );
     }
 
     #[test]
     fn streak_counts_consecutive_days() {
-        let d = days(&["2026-11-10", "2026-11-11", "2026-11-12", "2026-11-15", "2026-11-16"]);
+        let d = days(&[
+            "2026-11-10",
+            "2026-11-11",
+            "2026-11-12",
+            "2026-11-15",
+            "2026-11-16",
+        ]);
         let s = streaks(&d, day("2026-11-16"));
-        assert_eq!(s, Streaks { current: 2, longest: 3 });
+        assert_eq!(
+            s,
+            Streaks {
+                current: 2,
+                longest: 3
+            }
+        );
     }
 
     #[test]
@@ -295,7 +332,10 @@ pub(crate) mod tests {
 
     #[test]
     fn no_days_no_streak() {
-        assert_eq!(streaks(&BTreeMap::new(), day("2026-11-17")), Streaks::default());
+        assert_eq!(
+            streaks(&BTreeMap::new(), day("2026-11-17")),
+            Streaks::default()
+        );
     }
 
     #[test]
@@ -385,7 +425,10 @@ last 3 days
         assert!(!report(&plain, day("2026-11-17"), 0).contains("by task"));
         let labelled = [tagged("2026-11-17T09:00:00Z", "code", 1500)];
         let r = report(&labelled, day("2026-11-17"), 0);
-        assert!(r.contains("\nby task\ncode                    1  25m\n"), "{r}");
+        assert!(
+            r.contains("\nby task\ncode                    1  25m\n"),
+            "{r}"
+        );
     }
 
     #[test]
