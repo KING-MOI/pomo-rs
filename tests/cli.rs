@@ -102,3 +102,20 @@ fn a_short_session_runs_and_is_logged() {
     let log = fs::read_to_string(sb.log()).unwrap();
     assert!(log.trim_end().ends_with("\twork\t1\t1\ttests"), "{log}");
 }
+
+#[test]
+fn remote_commands_need_a_running_timer() {
+    let sb = Sandbox::new("remote");
+    assert_eq!(stdout(&sb.cmd(&["status"])), "not running\n");
+    assert_eq!(stdout(&sb.cmd(&["status", "-f", "{kind}"])), "");
+    let o = sb.cmd(&["skip"]);
+    assert_eq!(o.status.code(), Some(1));
+}
+
+#[test]
+fn config_init_does_not_clobber() {
+    let sb = Sandbox::new("init");
+    assert!(sb.cmd(&["config", "init"]).status.success());
+    assert!(!sb.cmd(&["config", "init"]).status.success());
+    assert!(sb.cmd(&["config", "init", "--force"]).status.success());
+}
