@@ -15,3 +15,4 @@ All notable changes to this project are documented here. The format follows
 - daily goal, hooks, terminal title and shell completions
 - flaky test observed while testing
 - considered the macOS build; parked for now
+- double-check cleanup logic behavior
