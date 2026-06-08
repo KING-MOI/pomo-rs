@@ -64,7 +64,7 @@ impl Cycle {
         self.current = match self.current {
             Kind::Work => {
                 self.done += 1;
-                if self.done % self.every == 0 {
+                if self.done.is_multiple_of(self.every) {
                     Kind::LongBreak
                 } else {
                     Kind::ShortBreak
