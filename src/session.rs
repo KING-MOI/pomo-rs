@@ -26,10 +26,6 @@ impl Kind {
         }
     }
 
-    pub fn is_break(self) -> bool {
-        self != Kind::Work
-    }
-
     pub fn length(self, c: &Config) -> Duration {
         match self {
             Kind::Work => c.work,
