@@ -61,10 +61,10 @@ pub fn streaks(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Streaks 
         s.longest = s.longest.max(run);
         prev = Some(d);
     }
-    if let Some(last) = prev {
-        if last == today || last.succ_opt() == Some(today) {
-            s.current = run;
-        }
+    if let Some(last) = prev
+        && (last == today || last.succ_opt() == Some(today))
+    {
+        s.current = run;
     }
     s
 }
@@ -92,7 +92,7 @@ pub fn per_task(entries: &[Entry]) -> Vec<(Option<&str>, Totals)> {
         map.entry(e.task.as_deref()).or_default().add(e);
     }
     let mut list: Vec<_> = map.into_iter().collect();
-    list.sort_by(|a, b| b.1.focused.cmp(&a.1.focused));
+    list.sort_by_key(|(_, t)| std::cmp::Reverse(t.focused));
     list
 }
 

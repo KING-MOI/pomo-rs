@@ -69,10 +69,10 @@ pub fn listen() -> Option<(RawMode, Receiver<Key>)> {
     thread::spawn(move || {
         for b in io::stdin().lock().bytes() {
             let Ok(b) = b else { break };
-            if let Some(k) = Key::from_byte(b) {
-                if tx.send(k).is_err() {
-                    break;
-                }
+            if let Some(k) = Key::from_byte(b)
+                && tx.send(k).is_err()
+            {
+                break;
             }
         }
     });
