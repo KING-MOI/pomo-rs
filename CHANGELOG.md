@@ -22,3 +22,4 @@ All notable changes to this project are documented here. The format follows
 - slow start observed while testing
 - follow up on the macOS build
 - follow up on release checklist
+- edge case observed while testing
