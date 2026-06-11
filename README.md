@@ -61,6 +61,30 @@ log_file = "~/notes/pomo.log"
 Durations take plain minutes (`25`) or strings such as `"25m"`, `"1h30m"` and
 `"90s"`. Command line flags win over the file.
 
+## Stats
+
+Every session is appended to `~/.local/share/pomo/sessions.log` (override with
+`log_file` or `POMO_LOG`). `pomo stats` reads it back:
+
+```
+today         3 sessions  1h15m
+this week    11 sessions  4h35m
+all time     42 sessions  17h30m
+streak           4 days  longest 9
+best day     2026-11-12  3h20m
+daily avg           1h45m
+
+last 7 days
+2026-11-11  ████░░░░░░    2  50m
+...
+```
+
+Only full-length work sessions count as sessions; skipped ones still add
+their minutes to focus time. A streak is consecutive days with at least one
+full session, and it isn't broken until a whole day passes without one.
+
+Flags: `--days N`, `--task NAME`, `--since YYYY-MM-DD`, `--json`.
+
 ## License
 
 MIT
