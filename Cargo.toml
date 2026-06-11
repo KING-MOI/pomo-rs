@@ -2,6 +2,7 @@
 name = "pomo-rs"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.88"
 description = "A minimal pomodoro timer for the terminal"
 license = "MIT"
 authors = ["Aditya Verma"]
