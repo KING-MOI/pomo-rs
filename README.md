@@ -85,6 +85,30 @@ full session, and it isn't broken until a whole day passes without one.
 
 Flags: `--days N`, `--task NAME`, `--since YYYY-MM-DD`, `--json`.
 
+## Notifications
+
+When a session ends pomo notifies you with `notify`:
+
+- `auto` (default): `terminal-notifier` if it's installed, otherwise OSC 9
+- `osc9`: an OSC 9 escape sequence, shown as a desktop notification by
+  iTerm2, WezTerm, kitty, foot and friends. Forwarded through tmux.
+- `terminal-notifier`: macOS notification center
+- `bell`: the terminal bell
+- `none`
+
+## Controlling a running timer
+
+From another terminal (or a hotkey, or a status bar):
+
+```sh
+pomo status                       # work 12:34
+pomo status -f '{kind} {remaining}'
+pomo pause | resume | toggle | skip | stop
+```
+
+`--format` understands `{kind}`, `{remaining}`, `{state}` and `{percent}` and
+prints nothing when no timer is running, which keeps status bars clean.
+
 ## License
 
 MIT
