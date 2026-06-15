@@ -1,12 +1,16 @@
-use std::time::{Duration, Instant};
+use std::time::{Duration, SystemTime};
 
 /// A countdown that can be paused and resumed. Every method takes `now`
 /// so the logic stays testable without sleeping.
+///
+/// It runs on wall-clock time rather than `Instant`: the monotonic clock
+/// stops while the machine is asleep, which would stretch a session by
+/// however long the lid was closed.
 #[derive(Debug, Clone)]
 pub struct Timer {
     length: Duration,
     banked: Duration,
-    running_since: Option<Instant>,
+    running_since: Option<SystemTime>,
 }
 
 impl Timer {
@@ -18,19 +22,19 @@ impl Timer {
         }
     }
 
-    pub fn start(&mut self, now: Instant) {
+    pub fn start(&mut self, now: SystemTime) {
         if self.running_since.is_none() {
             self.running_since = Some(now);
         }
     }
 
-    pub fn pause(&mut self, now: Instant) {
+    pub fn pause(&mut self, now: SystemTime) {
         if let Some(t) = self.running_since.take() {
-            self.banked += now.saturating_duration_since(t);
+            self.banked += now.duration_since(t).unwrap_or_default();
         }
     }
 
-    pub fn toggle(&mut self, now: Instant) {
+    pub fn toggle(&mut self, now: SystemTime) {
         if self.is_running() {
             self.pause(now);
         } else {
@@ -42,23 +46,23 @@ impl Timer {
         self.running_since.is_some()
     }
 
-    pub fn elapsed(&self, now: Instant) -> Duration {
+    pub fn elapsed(&self, now: SystemTime) -> Duration {
         let live = self
             .running_since
-            .map_or(Duration::ZERO, |t| now.saturating_duration_since(t));
+            .map_or(Duration::ZERO, |t| now.duration_since(t).unwrap_or_default());
         self.banked + live
     }
 
-    pub fn remaining(&self, now: Instant) -> Duration {
+    pub fn remaining(&self, now: SystemTime) -> Duration {
         self.length.saturating_sub(self.elapsed(now))
     }
 
-    pub fn is_done(&self, now: Instant) -> bool {
+    pub fn is_done(&self, now: SystemTime) -> bool {
         self.remaining(now).is_zero()
     }
 
     /// Fraction of the session elapsed, from 0.0 to 1.0.
-    pub fn progress(&self, now: Instant) -> f64 {
+    pub fn progress(&self, now: SystemTime) -> f64 {
         if self.length.is_zero() {
             return 1.0;
         }
@@ -66,7 +70,7 @@ impl Timer {
     }
 
     /// Throws away elapsed time; keeps running if it was running.
-    pub fn restart(&mut self, now: Instant) {
+    pub fn restart(&mut self, now: SystemTime) {
         self.banked = Duration::ZERO;
         if self.running_since.is_some() {
             self.running_since = Some(now);
@@ -90,7 +94,7 @@ mod tests {
 
     #[test]
     fn counts_down_while_running() {
-        let t0 = Instant::now();
+        let t0 = SystemTime::now();
         let mut t = Timer::new(10 * S);
         assert_eq!(t.remaining(t0), 10 * S);
         t.start(t0);
@@ -100,7 +104,7 @@ mod tests {
 
     #[test]
     fn pause_freezes_the_clock() {
-        let t0 = Instant::now();
+        let t0 = SystemTime::now();
         let mut t = Timer::new(10 * S);
         t.start(t0);
         t.pause(t0 + 2 * S);
@@ -112,7 +116,7 @@ mod tests {
 
     #[test]
     fn toggle_flips_running_state() {
-        let t0 = Instant::now();
+        let t0 = SystemTime::now();
         let mut t = Timer::new(5 * S);
         t.toggle(t0);
         assert!(t.is_running());
@@ -125,7 +129,7 @@ mod tests {
 
     #[test]
     fn progress_is_clamped() {
-        let t0 = Instant::now();
+        let t0 = SystemTime::now();
         let mut t = Timer::new(4 * S);
         assert_eq!(t.progress(t0), 0.0);
         t.start(t0);
@@ -136,7 +140,7 @@ mod tests {
 
     #[test]
     fn extend_adds_time() {
-        let t0 = Instant::now();
+        let t0 = SystemTime::now();
         let mut t = Timer::new(2 * S);
         t.start(t0);
         assert!(t.is_done(t0 + 2 * S));
@@ -146,7 +150,7 @@ mod tests {
 
     #[test]
     fn restart_resets_elapsed() {
-        let t0 = Instant::now();
+        let t0 = SystemTime::now();
         let mut t = Timer::new(10 * S);
         t.start(t0);
         t.restart(t0 + 4 * S);

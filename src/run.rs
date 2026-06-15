@@ -11,7 +11,7 @@ use std::io::{self, IsTerminal, Write};
 use std::path::Path;
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::{Duration, SystemTime};
 
 const TICK: Duration = Duration::from_millis(250);
 
@@ -83,7 +83,7 @@ impl<W: Write> Runner<'_, W> {
             let outcome = self.session(kind, &mut timer)?;
             let actual = match outcome {
                 Outcome::Finished => timer.length(),
-                _ => timer.elapsed(Instant::now()).min(timer.length()),
+                _ => timer.elapsed(SystemTime::now()).min(timer.length()),
             };
             let word = match outcome {
                 Outcome::Finished => "done",
@@ -122,7 +122,7 @@ impl<W: Write> Runner<'_, W> {
     }
 
     fn session(&mut self, kind: Kind, timer: &mut Timer) -> io::Result<Outcome> {
-        timer.start(Instant::now());
+        timer.start(SystemTime::now());
         self.publish(kind, timer);
         if !self.live {
             write!(
@@ -136,14 +136,14 @@ impl<W: Write> Runner<'_, W> {
                 None => writeln!(self.out)?,
             }
         }
-        while !timer.is_done(Instant::now()) {
+        while !timer.is_done(SystemTime::now()) {
             self.draw(kind, timer)?;
             match self.next_key() {
-                Some(Key::Toggle) => timer.toggle(Instant::now()),
-                Some(Key::Pause) => timer.pause(Instant::now()),
-                Some(Key::Resume) => timer.start(Instant::now()),
+                Some(Key::Toggle) => timer.toggle(SystemTime::now()),
+                Some(Key::Pause) => timer.pause(SystemTime::now()),
+                Some(Key::Resume) => timer.start(SystemTime::now()),
                 Some(Key::Extend) => timer.extend(Duration::from_secs(60)),
-                Some(Key::Restart) => timer.restart(Instant::now()),
+                Some(Key::Restart) => timer.restart(SystemTime::now()),
                 Some(Key::Skip) => return Ok(Outcome::Skipped),
                 Some(Key::Quit) => return Ok(Outcome::Quit),
                 None => continue,
@@ -174,7 +174,7 @@ impl<W: Write> Runner<'_, W> {
             pid: std::process::id(),
             kind,
             length: timer.length(),
-            elapsed: timer.elapsed(Instant::now()),
+            elapsed: timer.elapsed(SystemTime::now()),
             paused: !timer.is_running(),
             at: remote::now_ms(),
         };
@@ -209,7 +209,7 @@ impl<W: Write> Runner<'_, W> {
         if !self.live {
             return Ok(());
         }
-        let now = Instant::now();
+        let now = SystemTime::now();
         let c = self.config;
         let line = match c.display {
             Display::Plain => bar::plain(kind, timer.remaining(now), !timer.is_running()),
