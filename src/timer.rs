@@ -160,4 +160,14 @@ mod tests {
         assert!(!t.is_running());
         assert_eq!(t.remaining(t0 + 7 * S), 10 * S);
     }
+
+    #[test]
+    fn clock_going_backwards_does_not_panic() {
+        let t0 = SystemTime::now();
+        let mut t = Timer::new(10 * S);
+        t.start(t0);
+        assert_eq!(t.remaining(t0 - 5 * S), 10 * S);
+        t.pause(t0 - 5 * S);
+        assert_eq!(t.remaining(t0), 10 * S);
+    }
 }
