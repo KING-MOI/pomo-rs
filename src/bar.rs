@@ -2,6 +2,12 @@ pub const CLEAR_LINE: &str = "\r\x1b[2K";
 pub const HIDE_CURSOR: &str = "\x1b[?25l";
 pub const SHOW_CURSOR: &str = "\x1b[?25h";
 
+/// Sets the terminal window or tab title (OSC 2).
+pub fn title(s: &str) -> String {
+    let clean: String = s.chars().filter(|c| !c.is_control()).collect();
+    format!("\x1b]2;{clean}\x07")
+}
+
 pub fn paint(s: &str, color: u8) -> String {
     format!("\x1b[{color}m{s}\x1b[0m")
 }
@@ -91,6 +97,12 @@ mod tests {
         assert_eq!(smooth(0.25, 2), "▌ ");
         assert_eq!(smooth(1.0, 2), "██");
         assert_eq!(smooth(0.5, 3).chars().count(), 3);
+    }
+
+    #[test]
+    fn title_sequence_is_sanitized() {
+        assert_eq!(title("work 12:00"), "\x1b]2;work 12:00\x07");
+        assert_eq!(title("a\x07b"), "\x1b]2;ab\x07");
     }
 
     #[test]

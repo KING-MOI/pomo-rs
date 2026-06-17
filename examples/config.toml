@@ -16,5 +16,8 @@ display = "plain"
 bar_width = 24
 color = true
 
+# show the countdown in the terminal window title
+title = false
+
 # "auto", "osc9", "terminal-notifier", "bell" or "none"
 notify = "auto"

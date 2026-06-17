@@ -65,6 +65,9 @@ pub fn run(
     }
     let result = r.cycle_loop();
     remote::clear(state_dir);
+    if config.title && live {
+        write!(io::stdout(), "{}", bar::title(""))?;
+    }
     if hide {
         write!(r.out, "{}", bar::SHOW_CURSOR)?;
         r.out.flush()?;
@@ -222,6 +225,10 @@ impl<W: Write> Runner<'_, W> {
                 c.color,
             ),
         };
+        if c.title {
+            let left = duration::clock(duration::ceil_secs(timer.remaining(now)));
+            write!(self.out, "{}", bar::title(&format!("{} {left}", kind.label())))?;
+        }
         write!(self.out, "{}{}", bar::CLEAR_LINE, line)?;
         if let Some(t) = self.task.filter(|_| kind == Kind::Work) {
             write!(self.out, " · {t}")?;

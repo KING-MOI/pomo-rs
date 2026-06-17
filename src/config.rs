@@ -22,6 +22,8 @@ pub struct Config {
     pub display: Display,
     pub bar_width: usize,
     pub color: bool,
+    /// Mirror the countdown in the terminal title.
+    pub title: bool,
     pub notify: crate::notify::Method,
     /// Where finished sessions are recorded; defaults to the xdg data dir.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -47,6 +49,7 @@ impl Default for Config {
             display: Display::Plain,
             bar_width: 24,
             color: true,
+            title: false,
             notify: Default::default(),
             log_file: None,
         }
