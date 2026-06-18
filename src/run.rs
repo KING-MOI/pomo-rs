@@ -66,7 +66,8 @@ pub fn run(
     let result = r.cycle_loop();
     remote::clear(state_dir);
     if config.title && live {
-        write!(io::stdout(), "{}", bar::title(""))?;
+        write!(r.out, "{}", bar::title(""))?;
+        r.out.flush()?;
     }
     if hide {
         write!(r.out, "{}", bar::SHOW_CURSOR)?;
