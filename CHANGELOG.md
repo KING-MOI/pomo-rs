@@ -56,3 +56,4 @@ All notable changes to this project are documented here. The format follows
 - double-check ci caching behavior
 - slow start observed while testing
 - edge case observed while testing
+- edge case observed while testing
