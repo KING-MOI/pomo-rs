@@ -21,3 +21,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on release checklist
 - slow start observed while testing
 - follow up on the macOS build
+- follow up on release checklist
