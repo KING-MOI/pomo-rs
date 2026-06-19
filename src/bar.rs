@@ -1,3 +1,7 @@
+use crate::duration;
+use crate::session::Kind;
+use std::time::Duration;
+
 pub const CLEAR_LINE: &str = "\r\x1b[2K";
 pub const HIDE_CURSOR: &str = "\x1b[?25l";
 pub const SHOW_CURSOR: &str = "\x1b[?25h";
@@ -25,10 +29,6 @@ pub fn smooth(progress: f64, width: usize) -> String {
     }
     s
 }
-
-use crate::duration;
-use crate::session::Kind;
-use std::time::Duration;
 
 /// One frame of the plain display: `work 12:34`.
 pub fn plain(kind: Kind, remaining: Duration, paused: bool) -> String {
