@@ -68,3 +68,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on exit codes
 - follow up on release checklist
 - follow up on docs example
+- double-check the macOS build behavior
