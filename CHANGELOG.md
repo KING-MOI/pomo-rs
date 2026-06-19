@@ -75,3 +75,4 @@ All notable changes to this project are documented here. The format follows
 - double-check the macOS build behavior
 - double-check cleanup logic behavior
 - double-check the retry path behavior
+- double-check config defaults behavior
