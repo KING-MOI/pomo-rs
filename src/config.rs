@@ -17,6 +17,8 @@ pub struct Config {
     #[serde(with = "crate::duration::serde")]
     pub long_break: Duration,
     pub long_break_every: u32,
+    /// Full work sessions to aim for each day; 0 turns the goal off.
+    pub daily_goal: u32,
     /// Roll straight into the next session instead of waiting for a key.
     pub auto_start: bool,
     pub display: Display,
@@ -45,6 +47,7 @@ impl Default for Config {
             short_break: Duration::from_secs(5 * MIN),
             long_break: Duration::from_secs(15 * MIN),
             long_break_every: 4,
+            daily_goal: 0,
             auto_start: true,
             display: Display::Plain,
             bar_width: 24,

@@ -8,6 +8,9 @@ long_break = "15m"
 # a long break replaces every Nth short break
 long_break_every = 4
 
+# full work sessions to aim for each day (0 = no goal)
+daily_goal = 0
+
 # start the next session right away; false waits for a keypress
 auto_start = true
 
