@@ -115,19 +115,24 @@ fn plural(n: u32, word: &str) -> String {
     }
 }
 
-pub fn report(entries: &[Entry], today: NaiveDate, last: u32) -> String {
+pub fn report(entries: &[Entry], today: NaiveDate, last: u32, goal: u32) -> String {
     let all = totals(entries);
     let days = per_day(entries);
     let st = streaks(&days, today);
     let none = Totals::default();
     let t = days.get(&today).unwrap_or(&none);
     let mut out = String::new();
-    let _ = writeln!(
+    let _ = write!(
         out,
         "today     {:>13}  {}",
         plural(t.sessions, "session"),
         human(t.focused)
     );
+    if goal > 0 {
+        let mark = if t.sessions >= goal { " ✓" } else { "" };
+        let _ = write!(out, "  goal {}/{goal}{mark}", t.sessions);
+    }
+    out.push('\n');
     let w = this_week(&days, today);
     let _ = writeln!(
         out,
@@ -345,7 +350,7 @@ pub(crate) mod tests {
             entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500),
             entry("2026-11-17T10:00:00Z", Kind::Work, 1500, 1500),
         ];
-        let r = report(&log, day("2026-11-17"), 3);
+        let r = report(&log, day("2026-11-17"), 3, 0);
         let expected = "\
 today        2 sessions  50m
 this week    3 sessions  1h15m
@@ -422,13 +427,22 @@ last 3 days
     #[test]
     fn report_lists_tasks_only_when_labelled() {
         let plain = [entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500)];
-        assert!(!report(&plain, day("2026-11-17"), 0).contains("by task"));
+        assert!(!report(&plain, day("2026-11-17"), 0, 0).contains("by task"));
         let labelled = [tagged("2026-11-17T09:00:00Z", "code", 1500)];
-        let r = report(&labelled, day("2026-11-17"), 0);
+        let r = report(&labelled, day("2026-11-17"), 0, 0);
         assert!(
             r.contains("\nby task\ncode                    1  25m\n"),
             "{r}"
         );
+    }
+
+    #[test]
+    fn goal_progress_on_the_today_line() {
+        let log = [entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500)];
+        let first = |goal| report(&log, day("2026-11-17"), 0, goal).lines().next().unwrap().to_string();
+        assert!(first(4).ends_with("goal 1/4"), "{}", first(4));
+        assert!(first(1).ends_with("goal 1/1 ✓"), "{}", first(1));
+        assert!(!first(0).contains("goal"));
     }
 
     #[test]
