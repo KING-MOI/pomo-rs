@@ -30,7 +30,23 @@ struct Runner<'a, W: Write> {
     count: Option<u32>,
     keys: Option<&'a Receiver<Key>>,
     live: bool,
+    done_today: u32,
     out: W,
+}
+
+/// Full work sessions already logged today, so the goal counter picks up
+/// where an earlier run left off.
+fn done_today(log_path: &Path) -> u32 {
+    let today = chrono::Local::now().date_naive();
+    log::read(log_path)
+        .map(|(entries, _)| {
+            entries
+                .iter()
+                .filter(|e| e.kind == Kind::Work && e.completed())
+                .filter(|e| e.start.date_naive() == today)
+                .count() as u32
+        })
+        .unwrap_or(0)
 }
 
 pub fn run(
@@ -52,6 +68,7 @@ pub fn run(
         count,
         keys: listener.as_ref().map(|(_, rx)| rx),
         live,
+        done_today: done_today(log_path),
         out,
     };
     if hide {
@@ -97,7 +114,15 @@ impl<W: Write> Runner<'_, W> {
             if self.live {
                 write!(self.out, "{}", bar::CLEAR_LINE)?;
             }
-            writeln!(self.out, "{} {word}", kind.label())?;
+            write!(self.out, "{} {word}", kind.label())?;
+            let goal = self.config.daily_goal;
+            if kind == Kind::Work && outcome == Outcome::Finished {
+                self.done_today += 1;
+                if goal > 0 {
+                    write!(self.out, " ({}/{goal} today)", self.done_today)?;
+                }
+            }
+            writeln!(self.out)?;
             log::append(
                 self.log_path,
                 &Entry {
@@ -113,7 +138,10 @@ impl<W: Write> Runner<'_, W> {
             }
             let next = cycle.advance();
             if outcome == Outcome::Finished {
-                let msg = format!("{} done, time for {}", kind.label(), next.label());
+                let mut msg = format!("{} done, time for {}", kind.label(), next.label());
+                if kind == Kind::Work && self.done_today == self.config.daily_goal {
+                    msg = format!("daily goal of {} reached! {msg}", self.done_today);
+                }
                 notify::send(self.config.notify, &msg)?;
             }
             if self.count.is_some_and(|n| cycle.completed_work() >= n) {
