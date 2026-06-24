@@ -59,6 +59,24 @@ impl Entry {
     }
 }
 
+impl Entry {
+    /// One human readable line for `pomo log`.
+    pub fn pretty(&self) -> String {
+        let mark = if self.completed() { "✓" } else { "·" };
+        let mut s = format!(
+            "{}  {:<11}  {:>6}  {mark}",
+            self.start.format("%Y-%m-%d %H:%M"),
+            self.kind.label(),
+            crate::duration::human(self.actual),
+        );
+        if let Some(t) = &self.task {
+            s.push_str("  ");
+            s.push_str(t);
+        }
+        s
+    }
+}
+
 fn round_secs(d: Duration) -> u64 {
     (d.as_millis() as u64 + 500) / 1000
 }
@@ -138,6 +156,17 @@ mod tests {
         assert_eq!(e.to_line(), sample().to_line());
         let parsed = Entry::parse(&format!("{}\t", sample().to_line())).unwrap();
         assert_eq!(parsed.task, None);
+    }
+
+    #[test]
+    fn pretty_line() {
+        assert_eq!(sample().pretty(), "2026-11-17 09:00  work            25m  ✓");
+        let skipped = Entry {
+            actual: Duration::from_secs(600),
+            task: Some("docs".into()),
+            ..sample()
+        };
+        assert_eq!(skipped.pretty(), "2026-11-17 09:00  work            10m  ·  docs");
     }
 
     #[test]
