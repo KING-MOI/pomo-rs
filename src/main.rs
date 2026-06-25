@@ -65,12 +65,18 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
     .map_err(|e| e.to_string())
 }
 
-fn stats(args: cli::StatsArgs) -> Result<(), String> {
+/// Loads config and the session log, reporting bad log lines on stderr.
+fn load_entries() -> Result<(Config, Vec<log::Entry>), String> {
     let config = Config::load(&paths::config_file())?;
-    let (mut entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
+    let (entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
     for w in warnings {
         eprintln!("pomo: skipping {w}");
     }
+    Ok((config, entries))
+}
+
+fn stats(args: cli::StatsArgs) -> Result<(), String> {
+    let (config, mut entries) = load_entries()?;
     if let Some(t) = &args.task {
         entries.retain(|e| e.task.as_ref() == Some(t));
     }
@@ -132,11 +138,7 @@ fn control(command: &str) -> Result<(), String> {
 }
 
 fn show_log(limit: usize) -> Result<(), String> {
-    let config = Config::load(&paths::config_file())?;
-    let (entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
-    for w in warnings {
-        eprintln!("pomo: skipping {w}");
-    }
+    let (_, entries) = load_entries()?;
     for e in &entries[entries.len().saturating_sub(limit)..] {
         println!("{}", e.pretty());
     }
