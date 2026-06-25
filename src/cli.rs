@@ -18,6 +18,12 @@ pub enum Command {
     Start(StartArgs),
     /// Show focus time, streaks and a per-day summary
     Stats(StatsArgs),
+    /// List recent sessions
+    Log {
+        /// How many sessions to show
+        #[arg(short = 'n', long, default_value_t = 10)]
+        limit: usize,
+    },
     /// Show what the running timer is doing
     Status {
         /// Template with {kind}, {remaining}, {state} and {percent}

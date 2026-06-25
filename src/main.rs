@@ -25,6 +25,7 @@ fn main() -> ExitCode {
         Command::Stats(args) => stats(args),
         Command::Config(cmd) => config_cmd(cmd),
         Command::Status { format } => status(format),
+        Command::Log { limit } => show_log(limit),
         Command::Pause => control("pause"),
         Command::Resume => control("resume"),
         Command::Toggle => control("toggle"),
@@ -128,4 +129,16 @@ fn control(command: &str) -> Result<(), String> {
         return Err("no timer is running".into());
     }
     remote::send(&dir, command).map_err(|e| e.to_string())
+}
+
+fn show_log(limit: usize) -> Result<(), String> {
+    let config = Config::load(&paths::config_file())?;
+    let (entries, warnings) = log::read(&paths::log_file(config.log_file.as_deref()))?;
+    for w in warnings {
+        eprintln!("pomo: skipping {w}");
+    }
+    for e in &entries[entries.len().saturating_sub(limit)..] {
+        println!("{}", e.pretty());
+    }
+    Ok(())
 }
