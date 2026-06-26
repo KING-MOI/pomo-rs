@@ -23,6 +23,10 @@ pub enum Command {
         /// How many sessions to show
         #[arg(short = 'n', long, default_value_t = 10)]
         limit: usize,
+
+        /// Print the log file's path instead
+        #[arg(long)]
+        path: bool,
     },
     /// Show what the running timer is doing
     Status {

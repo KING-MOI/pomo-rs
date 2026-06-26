@@ -25,7 +25,7 @@ fn main() -> ExitCode {
         Command::Stats(args) => stats(args),
         Command::Config(cmd) => config_cmd(cmd),
         Command::Status { format } => status(format),
-        Command::Log { limit } => show_log(limit),
+        Command::Log { limit, path } => show_log(limit, path),
         Command::Pause => control("pause"),
         Command::Resume => control("resume"),
         Command::Toggle => control("toggle"),
@@ -137,7 +137,12 @@ fn control(command: &str) -> Result<(), String> {
     remote::send(&dir, command).map_err(|e| e.to_string())
 }
 
-fn show_log(limit: usize) -> Result<(), String> {
+fn show_log(limit: usize, path: bool) -> Result<(), String> {
+    if path {
+        let config = Config::load(&paths::config_file())?;
+        println!("{}", paths::log_file(config.log_file.as_deref()).display());
+        return Ok(());
+    }
     let (_, entries) = load_entries()?;
     for e in &entries[entries.len().saturating_sub(limit)..] {
         println!("{}", e.pretty());
