@@ -81,3 +81,4 @@ All notable changes to this project are documented here. The format follows
 - considered exit codes; parked for now
 - considered type narrowing; parked for now
 - follow up on type narrowing
+- double-check config defaults behavior
