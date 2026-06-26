@@ -125,3 +125,18 @@ fn config_init_does_not_clobber() {
     assert!(!sb.cmd(&["config", "init"]).status.success());
     assert!(sb.cmd(&["config", "init", "--force"]).status.success());
 }
+
+#[test]
+fn log_lists_the_most_recent_sessions() {
+    let sb = Sandbox::new("log");
+    fs::write(
+        sb.log(),
+        "2020-01-01T09:00:00+00:00\twork\t1500\t1500\n\
+         2020-01-01T09:30:00+00:00\tshort_break\t300\t120\n",
+    )
+    .unwrap();
+    let out = stdout(&sb.cmd(&["log", "-n", "1"]));
+    assert_eq!(out, "2020-01-01 09:30  short break      2m  ·\n");
+    let path = stdout(&sb.cmd(&["log", "--path"]));
+    assert_eq!(path.trim(), sb.log().display().to_string());
+}
