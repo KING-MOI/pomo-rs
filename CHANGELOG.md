@@ -25,3 +25,4 @@ All notable changes to this project are documented here. The format follows
 - edge case observed while testing
 - double-check the macOS build behavior
 - considered the retry path; parked for now
+- considered error messages; parked for now
