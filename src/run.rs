@@ -1,5 +1,6 @@
 use crate::bar;
 use crate::config::{Config, Display};
+use crate::hook;
 use crate::duration;
 use crate::keys::{self, Key};
 use crate::log::{self, Entry};
@@ -133,6 +134,9 @@ impl<W: Write> Runner<'_, W> {
                     task: self.task.map(str::to_string),
                 },
             )?;
+            if let Some(cmd) = &self.config.hook {
+                hook::run(cmd, kind, word, self.task);
+            }
             if outcome == Outcome::Quit {
                 return Ok(());
             }

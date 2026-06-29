@@ -2,6 +2,7 @@ mod bar;
 mod cli;
 mod config;
 mod duration;
+mod hook;
 mod keys;
 mod log;
 mod notify;
