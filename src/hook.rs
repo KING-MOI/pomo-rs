@@ -13,5 +13,7 @@ pub fn run(cmd: &str, kind: Kind, outcome: &str, task: Option<&str>) {
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null());
-    let _ = c.spawn();
+    if let Ok(mut child) = c.spawn() {
+        std::thread::spawn(move || child.wait());
+    }
 }
