@@ -135,7 +135,7 @@ impl<W: Write> Runner<'_, W> {
                 },
             )?;
             if let Some(cmd) = &self.config.hook {
-                hook::run(cmd, kind, word, self.task);
+                hook::run(cmd, kind, word, self.task, actual);
             }
             if outcome == Outcome::Quit {
                 return Ok(());

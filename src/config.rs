@@ -27,8 +27,8 @@ pub struct Config {
     /// Mirror the countdown in the terminal title.
     pub title: bool,
     pub notify: crate::notify::Method,
-    /// Shell command run after each session, with POMO_KIND, POMO_OUTCOME
-    /// and POMO_TASK set.
+    /// Shell command run after each session, with POMO_KIND, POMO_OUTCOME,
+    /// POMO_SECONDS and POMO_TASK set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hook: Option<String>,
     /// Where finished sessions are recorded; defaults to the xdg data dir.
