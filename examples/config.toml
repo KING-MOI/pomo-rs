@@ -24,3 +24,10 @@ title = false
 
 # "auto", "osc9", "terminal-notifier", "bell" or "none"
 notify = "auto"
+
+# where sessions are logged (default: ~/.local/share/pomo/sessions.log)
+# log_file = "~/notes/pomo.log"
+
+# shell command run after every session; gets POMO_KIND, POMO_OUTCOME,
+# POMO_SECONDS and POMO_TASK in its environment
+# hook = "say \"$POMO_KIND $POMO_OUTCOME\""
