@@ -96,6 +96,23 @@ When a session ends pomo notifies you with `notify`:
 - `bell`: the terminal bell
 - `none`
 
+## Hooks
+
+Set `hook` to run a shell command whenever a session ends:
+
+```toml
+hook = "echo \"$POMO_KIND $POMO_OUTCOME $POMO_SECONDS\" >> ~/pomo-hooks.log"
+```
+
+| variable       | value                                   |
+|----------------|-----------------------------------------|
+| `POMO_KIND`    | `work`, `short_break` or `long_break`   |
+| `POMO_OUTCOME` | `done`, `skipped` or `stopped`          |
+| `POMO_SECONDS` | seconds actually spent                  |
+| `POMO_TASK`    | the `--task` label, or empty            |
+
+The hook runs in the background; its output is discarded.
+
 ## Controlling a running timer
 
 From another terminal (or a hotkey, or a status bar):
