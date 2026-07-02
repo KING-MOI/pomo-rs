@@ -44,6 +44,11 @@ pub enum Command {
     Skip,
     /// Stop the running timer
     Stop,
+    /// Print a shell completion script
+    Completions {
+        /// bash, zsh, fish, elvish or powershell
+        shell: clap_complete::Shell,
+    },
     /// Inspect or create the config file
     #[command(subcommand)]
     Config(ConfigCommand),

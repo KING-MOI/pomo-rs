@@ -27,6 +27,11 @@ fn main() -> ExitCode {
         Command::Config(cmd) => config_cmd(cmd),
         Command::Status { format } => status(format),
         Command::Log { limit, path } => show_log(limit, path),
+        Command::Completions { shell } => {
+            use clap::CommandFactory;
+            clap_complete::generate(shell, &mut Cli::command(), "pomo", &mut std::io::stdout());
+            Ok(())
+        }
         Command::Pause => control("pause"),
         Command::Resume => control("resume"),
         Command::Toggle => control("toggle"),
