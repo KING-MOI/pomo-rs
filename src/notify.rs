@@ -35,9 +35,13 @@ fn in_tmux() -> bool {
     std::env::var_os("TMUX").is_some()
 }
 
-fn terminal_notifier(title: &str, msg: &str) -> io::Result<bool> {
-    let status = Command::new("terminal-notifier")
-        .args(["-title", title, "-message", msg])
+fn terminal_notifier(title: &str, msg: &str, sound: Option<&str>) -> io::Result<bool> {
+    let mut cmd = Command::new("terminal-notifier");
+    cmd.args(["-title", title, "-message", msg]);
+    if let Some(s) = sound {
+        cmd.args(["-sound", s]);
+    }
+    let status = cmd
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status();
@@ -48,7 +52,7 @@ fn terminal_notifier(title: &str, msg: &str) -> io::Result<bool> {
     }
 }
 
-pub fn send(method: Method, msg: &str) -> io::Result<()> {
+pub fn send(method: Method, msg: &str, sound: Option<&str>) -> io::Result<()> {
     match method {
         Method::None => Ok(()),
         Method::Osc9 => send_osc9(msg),
@@ -57,9 +61,9 @@ pub fn send(method: Method, msg: &str) -> io::Result<()> {
             write!(out, "\x07")?;
             out.flush()
         }
-        Method::TerminalNotifier => terminal_notifier("pomo", msg).map(drop),
+        Method::TerminalNotifier => terminal_notifier("pomo", msg, sound).map(drop),
         Method::Auto => {
-            if terminal_notifier("pomo", msg)? {
+            if terminal_notifier("pomo", msg, sound)? {
                 Ok(())
             } else {
                 send_osc9(msg)

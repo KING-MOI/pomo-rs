@@ -27,6 +27,9 @@ pub struct Config {
     /// Mirror the countdown in the terminal title.
     pub title: bool,
     pub notify: crate::notify::Method,
+    /// macOS sound name played by terminal-notifier, e.g. "Glass".
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sound: Option<String>,
     /// Shell command run after each session, with POMO_KIND, POMO_OUTCOME,
     /// POMO_SECONDS and POMO_TASK set.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,6 +61,7 @@ impl Default for Config {
             color: true,
             title: false,
             notify: Default::default(),
+            sound: None,
             hook: None,
             log_file: None,
         }

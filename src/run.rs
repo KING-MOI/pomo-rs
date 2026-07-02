@@ -146,7 +146,7 @@ impl<W: Write> Runner<'_, W> {
                 if kind == Kind::Work && self.done_today == self.config.daily_goal {
                     msg = format!("daily goal of {} reached! {msg}", self.done_today);
                 }
-                notify::send(self.config.notify, &msg)?;
+                notify::send(self.config.notify, &msg, self.config.sound.as_deref())?;
             }
             if self.count.is_some_and(|n| cycle.completed_work() >= n) {
                 return Ok(());

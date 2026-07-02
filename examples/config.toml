@@ -25,6 +25,9 @@ title = false
 # "auto", "osc9", "terminal-notifier", "bell" or "none"
 notify = "auto"
 
+# sound for terminal-notifier, any name from /System/Library/Sounds
+# sound = "Glass"
+
 # where sessions are logged (default: ~/.local/share/pomo/sessions.log)
 # log_file = "~/notes/pomo.log"
 
