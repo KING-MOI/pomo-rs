@@ -14,6 +14,14 @@ cargo install --path .
 
 This installs a binary called `pomo`.
 
+Shell completions:
+
+```sh
+pomo completions zsh > ~/.zfunc/_pomo
+pomo completions bash > ~/.local/share/bash-completion/completions/pomo
+pomo completions fish > ~/.config/fish/completions/pomo.fish
+```
+
 ## Usage
 
 ```sh
