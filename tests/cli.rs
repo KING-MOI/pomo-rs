@@ -140,3 +140,9 @@ fn log_lists_the_most_recent_sessions() {
     let path = stdout(&sb.cmd(&["log", "--path"]));
     assert_eq!(path.trim(), sb.log().display().to_string());
 }
+
+#[test]
+fn completions_are_generated() {
+    let out = stdout(&Sandbox::new("comp").cmd(&["completions", "bash"]));
+    assert!(out.contains("_pomo()"), "{out}");
+}
