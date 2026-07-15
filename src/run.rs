@@ -124,16 +124,17 @@ impl<W: Write> Runner<'_, W> {
                 }
             }
             writeln!(self.out)?;
-            log::append(
-                self.log_path,
-                &Entry {
-                    start: started,
-                    kind,
-                    planned: timer.length(),
-                    actual,
-                    task: self.task.map(str::to_string),
-                },
-            )?;
+            let entry = Entry {
+                start: started,
+                kind,
+                planned: timer.length(),
+                actual,
+                task: self.task.map(str::to_string),
+            };
+            if let Err(e) = log::append(self.log_path, &entry) {
+                eprintln!("pomo: could not write {}: {e}", self.log_path.display());
+                eprintln!("pomo: unsaved session: {}", entry.to_line());
+            }
             if let Some(cmd) = &self.config.hook {
                 hook::run(cmd, kind, word, self.task, actual);
             }
