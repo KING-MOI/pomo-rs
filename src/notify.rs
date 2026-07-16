@@ -41,10 +41,7 @@ fn terminal_notifier(title: &str, msg: &str, sound: Option<&str>) -> io::Result<
     if let Some(s) = sound {
         cmd.args(["-sound", s]);
     }
-    let status = cmd
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status();
+    let status = cmd.stdout(Stdio::null()).stderr(Stdio::null()).status();
     match status {
         Ok(s) => Ok(s.success()),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(false),

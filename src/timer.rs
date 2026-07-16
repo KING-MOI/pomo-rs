@@ -47,9 +47,9 @@ impl Timer {
     }
 
     pub fn elapsed(&self, now: SystemTime) -> Duration {
-        let live = self
-            .running_since
-            .map_or(Duration::ZERO, |t| now.duration_since(t).unwrap_or_default());
+        let live = self.running_since.map_or(Duration::ZERO, |t| {
+            now.duration_since(t).unwrap_or_default()
+        });
         self.banked + live
     }
 

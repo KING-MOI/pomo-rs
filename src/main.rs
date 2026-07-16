@@ -93,7 +93,10 @@ fn stats(args: cli::StatsArgs) -> Result<(), String> {
     if args.json {
         println!("{}", stats::json(&entries, today, args.days));
     } else {
-        print!("{}", stats::report(&entries, today, args.days, config.daily_goal));
+        print!(
+            "{}",
+            stats::report(&entries, today, args.days, config.daily_goal)
+        );
     }
     Ok(())
 }

@@ -439,7 +439,13 @@ last 3 days
     #[test]
     fn goal_progress_on_the_today_line() {
         let log = [entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500)];
-        let first = |goal| report(&log, day("2026-11-17"), 0, goal).lines().next().unwrap().to_string();
+        let first = |goal| {
+            report(&log, day("2026-11-17"), 0, goal)
+                .lines()
+                .next()
+                .unwrap()
+                .to_string()
+        };
         assert!(first(4).ends_with("goal 1/4"), "{}", first(4));
         assert!(first(1).ends_with("goal 1/1 ✓"), "{}", first(1));
         assert!(!first(0).contains("goal"));

@@ -160,13 +160,19 @@ mod tests {
 
     #[test]
     fn pretty_line() {
-        assert_eq!(sample().pretty(), "2026-11-17 09:00  work            25m  ✓");
+        assert_eq!(
+            sample().pretty(),
+            "2026-11-17 09:00  work            25m  ✓"
+        );
         let skipped = Entry {
             actual: Duration::from_secs(600),
             task: Some("docs".into()),
             ..sample()
         };
-        assert_eq!(skipped.pretty(), "2026-11-17 09:00  work            10m  ·  docs");
+        assert_eq!(
+            skipped.pretty(),
+            "2026-11-17 09:00  work            10m  ·  docs"
+        );
     }
 
     #[test]

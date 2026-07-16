@@ -1,7 +1,7 @@
 use crate::bar;
 use crate::config::{Config, Display};
-use crate::hook;
 use crate::duration;
+use crate::hook;
 use crate::keys::{self, Key};
 use crate::log::{self, Entry};
 use crate::notify;
@@ -147,7 +147,10 @@ impl<W: Write> Runner<'_, W> {
                 if kind == Kind::Work && self.done_today == self.config.daily_goal {
                     msg = format!("daily goal of {} reached! {msg}", self.done_today);
                 }
-                notify::send(self.config.notify, &msg, self.config.sound.as_deref())?;
+                if let Err(e) = notify::send(self.config.notify, &msg, self.config.sound.as_deref())
+                {
+                    eprintln!("pomo: notification failed: {e}");
+                }
             }
             if self.count.is_some_and(|n| cycle.completed_work() >= n) {
                 return Ok(());
@@ -261,7 +264,11 @@ impl<W: Write> Runner<'_, W> {
         };
         if c.title {
             let left = duration::clock(duration::ceil_secs(timer.remaining(now)));
-            write!(self.out, "{}", bar::title(&format!("{} {left}", kind.label())))?;
+            write!(
+                self.out,
+                "{}",
+                bar::title(&format!("{} {left}", kind.label()))
+            )?;
         }
         write!(self.out, "{}{}", bar::CLEAR_LINE, line)?;
         if let Some(t) = self.task.filter(|_| kind == Kind::Work) {
