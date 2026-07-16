@@ -1,7 +1,7 @@
 use crate::duration::human;
 use crate::log::Entry;
 use crate::session::Kind;
-use chrono::NaiveDate;
+use chrono::{Datelike, NaiveDate};
 use std::collections::BTreeMap;
 use std::fmt::Write;
 use std::time::Duration;
@@ -94,6 +94,18 @@ pub fn per_task(entries: &[Entry]) -> Vec<(Option<&str>, Totals)> {
     let mut list: Vec<_> = map.into_iter().collect();
     list.sort_by_key(|(_, t)| std::cmp::Reverse(t.focused));
     list
+}
+
+/// Average focus per weekday, Monday first, over the days that had work.
+pub fn by_weekday(days: &BTreeMap<NaiveDate, Totals>) -> [Duration; 7] {
+    let mut sum = [Duration::ZERO; 7];
+    let mut n = [0u32; 7];
+    for (d, t) in days.iter().filter(|(_, t)| !t.focused.is_zero()) {
+        let i = d.weekday().num_days_from_monday() as usize;
+        sum[i] += t.focused;
+        n[i] += 1;
+    }
+    std::array::from_fn(|i| if n[i] == 0 { Duration::ZERO } else { sum[i] / n[i] })
 }
 
 /// Totals since the most recent Monday, today included.
@@ -449,6 +461,19 @@ last 3 days
         assert!(first(4).ends_with("goal 1/4"), "{}", first(4));
         assert!(first(1).ends_with("goal 1/1 ✓"), "{}", first(1));
         assert!(!first(0).contains("goal"));
+    }
+
+    #[test]
+    fn weekday_averages() {
+        let log = [
+            entry("2026-11-16T09:00:00Z", Kind::Work, 600, 600),
+            entry("2026-11-23T09:00:00Z", Kind::Work, 1800, 1800),
+            entry("2026-11-18T09:00:00Z", Kind::Work, 900, 900),
+        ];
+        let w = by_weekday(&per_day(&log));
+        assert_eq!(w[0], Duration::from_secs(1200));
+        assert_eq!(w[1], Duration::ZERO);
+        assert_eq!(w[2], Duration::from_secs(900));
     }
 
     #[test]
