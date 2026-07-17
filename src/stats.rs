@@ -127,18 +127,22 @@ fn plural(n: u32, word: &str) -> String {
     }
 }
 
+fn ratio(d: Duration, max: Duration) -> f64 {
+    if max.is_zero() {
+        0.0
+    } else {
+        d.as_secs_f64() / max.as_secs_f64()
+    }
+}
+
 pub fn weekday_report(entries: &[Entry]) -> String {
     let avg = by_weekday(&per_day(entries));
     let max = avg.iter().max().copied().unwrap_or_default();
     let names = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
     let mut out = String::new();
     for (name, d) in names.iter().zip(avg) {
-        let frac = if max.is_zero() {
-            0.0
-        } else {
-            d.as_secs_f64() / max.as_secs_f64()
-        };
-        let _ = writeln!(out, "{name}  {}  {}", crate::bar::bar(frac, 10), human(d));
+        let b = crate::bar::bar(ratio(d, max), 10);
+        let _ = writeln!(out, "{name}  {b}  {}", human(d));
     }
     out
 }
@@ -208,15 +212,10 @@ pub fn report(entries: &[Entry], today: NaiveDate, last: u32, goal: u32) -> Stri
             .max()
             .unwrap_or_default();
         for (d, t) in recent {
-            let frac = if max.is_zero() {
-                0.0
-            } else {
-                t.focused.as_secs_f64() / max.as_secs_f64()
-            };
             let _ = writeln!(
                 out,
                 "{d}  {}  {:>3}  {}",
-                crate::bar::bar(frac, 10),
+                crate::bar::bar(ratio(t.focused, max), 10),
                 t.sessions,
                 human(t.focused)
             );
