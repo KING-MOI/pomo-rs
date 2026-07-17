@@ -127,6 +127,22 @@ fn plural(n: u32, word: &str) -> String {
     }
 }
 
+pub fn weekday_report(entries: &[Entry]) -> String {
+    let avg = by_weekday(&per_day(entries));
+    let max = avg.iter().max().copied().unwrap_or_default();
+    let names = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+    let mut out = String::new();
+    for (name, d) in names.iter().zip(avg) {
+        let frac = if max.is_zero() {
+            0.0
+        } else {
+            d.as_secs_f64() / max.as_secs_f64()
+        };
+        let _ = writeln!(out, "{name}  {}  {}", crate::bar::bar(frac, 10), human(d));
+    }
+    out
+}
+
 pub fn report(entries: &[Entry], today: NaiveDate, last: u32, goal: u32) -> String {
     let all = totals(entries);
     let days = per_day(entries);
@@ -474,6 +490,15 @@ last 3 days
         assert_eq!(w[0], Duration::from_secs(1200));
         assert_eq!(w[1], Duration::ZERO);
         assert_eq!(w[2], Duration::from_secs(900));
+    }
+
+    #[test]
+    fn weekday_report_layout() {
+        let log = [entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500)];
+        let r = weekday_report(&log);
+        assert_eq!(r.lines().count(), 7);
+        assert_eq!(r.lines().nth(1).unwrap(), "tue  ██████████  25m");
+        assert_eq!(r.lines().next().unwrap(), "mon  ░░░░░░░░░░  0m");
     }
 
     #[test]
