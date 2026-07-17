@@ -83,3 +83,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on type narrowing
 - double-check config defaults behavior
 - considered the macOS build; parked for now
+- considered link checker; parked for now
