@@ -135,6 +135,42 @@ fn ratio(d: Duration, max: Duration) -> f64 {
     }
 }
 
+/// A GitHub style calendar of the last `weeks` weeks: one row per weekday,
+/// one column per week, darker cells for more focus.
+pub fn heatmap(entries: &[Entry], today: NaiveDate, weeks: u32) -> String {
+    const SHADES: [char; 5] = ['·', '░', '▒', '▓', '█'];
+    let days = per_day(entries);
+    let this_monday = today.week(chrono::Weekday::Mon).first_day();
+    let start = this_monday - chrono::Days::new(7 * u64::from(weeks.saturating_sub(1)));
+    let max = days
+        .range(start..=today)
+        .map(|(_, t)| t.focused)
+        .max()
+        .unwrap_or_default();
+    let names = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+    let mut out = String::new();
+    for (row, name) in names.iter().enumerate() {
+        out.push_str(name);
+        out.push(' ');
+        for week in 0..weeks {
+            let d = start + chrono::Days::new(u64::from(week) * 7 + row as u64);
+            if d > today {
+                out.push(' ');
+                continue;
+            }
+            let f = days.get(&d).map_or(Duration::ZERO, |t| t.focused);
+            let level = if f.is_zero() {
+                0
+            } else {
+                1 + ((ratio(f, max) * 4.0).ceil() as usize - 1).min(3)
+            };
+            out.push(SHADES[level]);
+        }
+        out.push('\n');
+    }
+    out
+}
+
 pub fn weekday_report(entries: &[Entry]) -> String {
     let avg = by_weekday(&per_day(entries));
     let max = avg.iter().max().copied().unwrap_or_default();
@@ -498,6 +534,20 @@ last 3 days
         assert_eq!(r.lines().count(), 7);
         assert_eq!(r.lines().nth(1).unwrap(), "tue  ██████████  25m");
         assert_eq!(r.lines().next().unwrap(), "mon  ░░░░░░░░░░  0m");
+    }
+
+    #[test]
+    fn heatmap_grid() {
+        let log = [
+            entry("2026-11-10T09:00:00Z", Kind::Work, 3000, 3000),
+            entry("2026-11-17T09:00:00Z", Kind::Work, 600, 600),
+        ];
+        let h = heatmap(&log, day("2026-11-17"), 2);
+        let expected = "\
+mon ··
+tue █░
+wed · \nthu · \nfri · \nsat · \nsun · \n";
+        assert_eq!(h, expected);
     }
 
     #[test]
