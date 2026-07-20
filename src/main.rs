@@ -90,7 +90,9 @@ fn stats(args: cli::StatsArgs) -> Result<(), String> {
         entries.retain(|e| e.start.date_naive() >= d);
     }
     let today = chrono::Local::now().date_naive();
-    if args.weekdays {
+    if let Some(weeks) = args.heatmap {
+        print!("{}", stats::heatmap(&entries, today, weeks));
+    } else if args.weekdays {
         print!("{}", stats::weekday_report(&entries));
     } else if args.json {
         println!("{}", stats::json(&entries, today, args.days));

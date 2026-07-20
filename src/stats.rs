@@ -105,7 +105,13 @@ pub fn by_weekday(days: &BTreeMap<NaiveDate, Totals>) -> [Duration; 7] {
         sum[i] += t.focused;
         n[i] += 1;
     }
-    std::array::from_fn(|i| if n[i] == 0 { Duration::ZERO } else { sum[i] / n[i] })
+    std::array::from_fn(|i| {
+        if n[i] == 0 {
+            Duration::ZERO
+        } else {
+            sum[i] / n[i]
+        }
+    })
 }
 
 /// Totals since the most recent Monday, today included.

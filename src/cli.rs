@@ -110,6 +110,11 @@ pub struct StatsArgs {
     /// Show average focus per weekday instead
     #[arg(long, conflicts_with = "json")]
     pub weekdays: bool,
+
+    /// Show a calendar heatmap of the last WEEKS weeks (default 12)
+    #[arg(long, value_name = "WEEKS", num_args = 0..=1, default_missing_value = "12",
+          conflicts_with_all = ["json", "weekdays"])]
+    pub heatmap: Option<u32>,
 }
 
 #[derive(Subcommand)]
