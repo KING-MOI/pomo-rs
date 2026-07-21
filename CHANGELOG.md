@@ -59,3 +59,4 @@ All notable changes to this project are documented here. The format follows
 - edge case observed while testing
 - flaky test observed while testing
 - double-check the retry path behavior
+- considered ci caching; parked for now
