@@ -93,6 +93,15 @@ full session, and it isn't broken until a whole day passes without one.
 
 Flags: `--days N`, `--task NAME`, `--since YYYY-MM-DD`, `--json`.
 
+Two other views:
+
+```
+$ pomo stats --heatmap 6        $ pomo stats --weekdays
+mon ·░▒·▓█                      mon  ██████████  2h05m
+tue ░▒▓█▒·                      tue  ████████░░  1h40m
+...                             ...
+```
+
 ## Notifications
 
 When a session ends pomo notifies you with `notify`:
