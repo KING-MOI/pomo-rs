@@ -44,6 +44,8 @@ pub enum Command {
     Skip,
     /// Stop the running timer
     Stop,
+    /// Open the config file in $EDITOR
+    Edit,
     /// Print a shell completion script
     Completions {
         /// bash, zsh, fish, elvish or powershell
