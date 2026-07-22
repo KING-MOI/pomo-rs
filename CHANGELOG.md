@@ -86,3 +86,4 @@ All notable changes to this project are documented here. The format follows
 - considered link checker; parked for now
 - considered error messages; parked for now
 - follow up on exit codes
+- flaky test observed while testing
