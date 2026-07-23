@@ -24,3 +24,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on release checklist
 - edge case observed while testing
 - double-check the macOS build behavior
+- considered the retry path; parked for now
