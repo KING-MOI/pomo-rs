@@ -115,10 +115,7 @@ fn config_cmd(cmd: cli::ConfigCommand) -> Result<(), String> {
             if path.exists() && !force {
                 return Err(format!("{} already exists (use --force)", path.display()));
             }
-            if let Some(dir) = path.parent() {
-                std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
-            }
-            std::fs::write(&path, config::TEMPLATE).map_err(|e| e.to_string())?;
+            write_template(&path)?;
             println!("wrote {}", path.display());
         }
     }
@@ -169,10 +166,7 @@ fn show_log(limit: usize, path: bool) -> Result<(), String> {
 fn edit() -> Result<(), String> {
     let path = paths::config_file();
     if !path.exists() {
-        if let Some(dir) = path.parent() {
-            std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
-        }
-        std::fs::write(&path, config::TEMPLATE).map_err(|e| e.to_string())?;
+        write_template(&path)?;
     }
     let editor = std::env::var("VISUAL")
         .or_else(|_| std::env::var("EDITOR"))
@@ -186,4 +180,11 @@ fn edit() -> Result<(), String> {
         return Err(format!("{editor} exited with {status}"));
     }
     Config::load(&path).map(drop)
+}
+
+fn write_template(path: &std::path::Path) -> Result<(), String> {
+    if let Some(dir) = path.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(path, config::TEMPLATE).map_err(|e| format!("{}: {e}", path.display()))
 }
