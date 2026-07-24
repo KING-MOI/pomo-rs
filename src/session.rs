@@ -52,6 +52,14 @@ impl Cycle {
         }
     }
 
+    /// Starts the cycle on a break instead of work.
+    pub fn starting_with(long_break_every: u32, first: Kind) -> Cycle {
+        Cycle {
+            current: first,
+            ..Cycle::new(long_break_every)
+        }
+    }
+
     pub fn completed_work(&self) -> u32 {
         self.done
     }
@@ -134,5 +142,13 @@ mod tests {
             assert_eq!(k.key().parse::<Kind>().unwrap(), k);
         }
         assert!("nap".parse::<Kind>().is_err());
+    }
+
+    #[test]
+    fn can_start_on_a_break() {
+        let mut c = Cycle::starting_with(4, Kind::ShortBreak);
+        assert_eq!(c.current(), Kind::ShortBreak);
+        assert_eq!(c.advance(), Kind::Work);
+        assert_eq!(c.completed_work(), 0);
     }
 }

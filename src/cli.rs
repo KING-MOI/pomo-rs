@@ -56,7 +56,7 @@ pub enum Command {
     Config(ConfigCommand),
 }
 
-#[derive(Args, Default)]
+#[derive(Args)]
 pub struct StartArgs {
     /// Length of a work session (e.g. 25m, 1h, 90s)
     #[arg(short, long, value_parser = crate::duration::parse)]
@@ -81,6 +81,10 @@ pub struct StartArgs {
     /// How to notify when a session ends
     #[arg(long, value_enum)]
     pub notify: Option<crate::notify::Method>,
+
+    /// Session to begin with: work, short or long
+    #[arg(short, long, default_value = "work")]
+    pub first: crate::session::Kind,
 
     /// What you're working on; saved with each session in the log
     #[arg(short, long)]

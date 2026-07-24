@@ -1,4 +1,5 @@
 use crate::bar;
+use crate::cli::StartArgs;
 use crate::config::{Config, Display};
 use crate::duration;
 use crate::hook;
@@ -29,6 +30,7 @@ struct Runner<'a, W: Write> {
     state_dir: &'a Path,
     task: Option<&'a str>,
     count: Option<u32>,
+    first: Kind,
     keys: Option<&'a Receiver<Key>>,
     live: bool,
     done_today: u32,
@@ -50,13 +52,7 @@ fn done_today(log_path: &Path) -> u32 {
         .unwrap_or(0)
 }
 
-pub fn run(
-    config: &Config,
-    task: Option<&str>,
-    count: Option<u32>,
-    log_path: &Path,
-    state_dir: &Path,
-) -> io::Result<()> {
+pub fn run(config: &Config, args: &StartArgs, log_path: &Path, state_dir: &Path) -> io::Result<()> {
     let out = io::stdout();
     let live = out.is_terminal();
     let hide = config.display == Display::Bar && live;
@@ -65,8 +61,9 @@ pub fn run(
         config,
         log_path,
         state_dir,
-        task,
-        count,
+        task: args.task.as_deref(),
+        count: args.count,
+        first: args.first,
         keys: listener.as_ref().map(|(_, rx)| rx),
         live,
         done_today: done_today(log_path),
@@ -97,7 +94,7 @@ pub fn run(
 
 impl<W: Write> Runner<'_, W> {
     fn cycle_loop(&mut self) -> io::Result<()> {
-        let mut cycle = Cycle::new(self.config.long_break_every);
+        let mut cycle = Cycle::starting_with(self.config.long_break_every, self.first);
         loop {
             let kind = cycle.current();
             let mut timer = Timer::new(kind.length(self.config));

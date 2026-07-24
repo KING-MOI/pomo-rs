@@ -21,7 +21,10 @@ use std::process::ExitCode;
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    let result = match cli.command.unwrap_or(Command::Start(Default::default())) {
+    let command = cli
+        .command
+        .unwrap_or_else(|| Cli::parse_from(["pomo", "start"]).command.unwrap());
+    let result = match command {
         Command::Start(args) => start(args),
         Command::Stats(args) => stats(args),
         Command::Config(cmd) => config_cmd(cmd),
@@ -62,14 +65,7 @@ fn start(args: cli::StartArgs) -> Result<(), String> {
         return Err(format!("a timer is already running (pid {})", other.pid));
     }
     let log_path = paths::log_file(config.log_file.as_deref());
-    run::run(
-        &config,
-        args.task.as_deref(),
-        args.count,
-        &log_path,
-        &state_dir,
-    )
-    .map_err(|e| e.to_string())
+    run::run(&config, &args, &log_path, &state_dir).map_err(|e| e.to_string())
 }
 
 /// Loads config and the session log, reporting bad log lines on stderr.
