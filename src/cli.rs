@@ -5,11 +5,16 @@ use std::time::Duration;
 #[command(
     name = "pomo",
     version,
-    about = "A minimal pomodoro timer for the terminal"
+    about = "A minimal pomodoro timer for the terminal",
+    args_conflicts_with_subcommands = true
 )]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Command>,
+
+    /// Flags for `start`, accepted directly so `pomo -w 50m` works
+    #[command(flatten)]
+    pub start: StartArgs,
 }
 
 #[derive(Subcommand)]
@@ -179,6 +184,13 @@ mod tests {
         assert_eq!(c.long_break_every, 2);
         assert_eq!(c.display, Display::Bar);
         assert_eq!(c.short_break, Config::default().short_break);
+    }
+
+    #[test]
+    fn start_flags_work_without_the_subcommand() {
+        let cli = Cli::parse_from(["pomo", "-w", "50m"]);
+        assert!(cli.command.is_none());
+        assert_eq!(cli.start.work, Some(Duration::from_secs(3000)));
     }
 
     #[test]

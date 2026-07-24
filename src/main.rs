@@ -21,9 +21,7 @@ use std::process::ExitCode;
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    let command = cli
-        .command
-        .unwrap_or_else(|| Cli::parse_from(["pomo", "start"]).command.unwrap());
+    let command = cli.command.unwrap_or(Command::Start(cli.start));
     let result = match command {
         Command::Start(args) => start(args),
         Command::Stats(args) => stats(args),
