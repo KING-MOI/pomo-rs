@@ -26,7 +26,9 @@ pomo completions fish > ~/.config/fish/completions/pomo.fish
 
 ```sh
 pomo                 # same as `pomo start`
-pomo start -w 50m -s 10m
+pomo -w 50m -s 10m   # start flags work without `start`
+pomo start -t "write report"   # label sessions for stats
+pomo start -f short  # begin with a break
 pomo start --bar     # progress bar instead of a plain countdown
 pomo start -n 4      # stop after four work sessions
 pomo stats           # focus time, streaks, last 7 days
