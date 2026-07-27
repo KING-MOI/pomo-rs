@@ -141,6 +141,9 @@ impl<W: Write> Runner<'_, W> {
             let next = cycle.advance();
             if outcome == Outcome::Finished {
                 let mut msg = format!("{} done, time for {}", kind.label(), next.label());
+                if let Some(t) = self.task.filter(|_| kind == Kind::Work) {
+                    msg = format!("{t}: {msg}");
+                }
                 if kind == Kind::Work && self.done_today == self.config.daily_goal {
                     msg = format!("daily goal of {} reached! {msg}", self.done_today);
                 }
