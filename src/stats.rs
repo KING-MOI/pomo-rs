@@ -114,6 +114,17 @@ pub fn by_weekday(days: &BTreeMap<NaiveDate, Totals>) -> [Duration; 7] {
     })
 }
 
+/// Work totals per calendar month, oldest first, as (year, month).
+pub fn per_month(days: &BTreeMap<NaiveDate, Totals>) -> BTreeMap<(i32, u32), Totals> {
+    let mut months: BTreeMap<(i32, u32), Totals> = BTreeMap::new();
+    for (d, t) in days {
+        let m = months.entry((d.year(), d.month())).or_default();
+        m.sessions += t.sessions;
+        m.focused += t.focused;
+    }
+    months
+}
+
 /// Totals since the most recent Monday, today included.
 pub fn this_week(days: &BTreeMap<NaiveDate, Totals>, today: NaiveDate) -> Totals {
     let monday = today.week(chrono::Weekday::Mon).first_day();
@@ -571,5 +582,18 @@ wed · \nthu · \nfri · \nsat · \nsun · \n";
             j,
             r#"{"today":{"sessions":1,"focused_secs":1500},"all_time":{"sessions":1,"focused_secs":1500},"streak":{"current":1,"longest":1},"days":[{"date":"2026-11-16","totals":{"sessions":0,"focused_secs":0}},{"date":"2026-11-17","totals":{"sessions":1,"focused_secs":1500}}]}"#
         );
+    }
+
+    #[test]
+    fn months_roll_up_days() {
+        let log = [
+            entry("2026-10-31T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-01T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-17T09:00:00Z", Kind::Work, 1500, 1500),
+        ];
+        let m = per_month(&per_day(&log));
+        assert_eq!(m.len(), 2);
+        assert_eq!(m[&(2026, 10)].sessions, 1);
+        assert_eq!(m[&(2026, 11)].sessions, 2);
     }
 }
