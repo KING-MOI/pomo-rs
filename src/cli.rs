@@ -122,6 +122,10 @@ pub struct StatsArgs {
     #[arg(long, conflicts_with = "json")]
     pub weekdays: bool,
 
+    /// Show totals per month instead
+    #[arg(long, conflicts_with_all = ["json", "weekdays"])]
+    pub months: bool,
+
     /// Show a calendar heatmap of the last WEEKS weeks (default 12)
     #[arg(long, value_name = "WEEKS", num_args = 0..=1, default_missing_value = "12",
           value_parser = clap::value_parser!(u32).range(1..=104),

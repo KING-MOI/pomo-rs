@@ -188,6 +188,22 @@ pub fn heatmap(entries: &[Entry], today: NaiveDate, weeks: u32) -> String {
     out
 }
 
+pub fn month_report(entries: &[Entry]) -> String {
+    let months = per_month(&per_day(entries));
+    let max = months.values().map(|t| t.focused).max().unwrap_or_default();
+    let mut out = String::new();
+    for ((y, m), t) in &months {
+        let b = crate::bar::bar(ratio(t.focused, max), 10);
+        let _ = writeln!(
+            out,
+            "{y}-{m:02}  {b}  {:>4}  {}",
+            t.sessions,
+            human(t.focused)
+        );
+    }
+    out
+}
+
 pub fn weekday_report(entries: &[Entry]) -> String {
     let avg = by_weekday(&per_day(entries));
     let max = avg.iter().max().copied().unwrap_or_default();
@@ -595,5 +611,17 @@ wed · \nthu · \nfri · \nsat · \nsun · \n";
         assert_eq!(m.len(), 2);
         assert_eq!(m[&(2026, 10)].sessions, 1);
         assert_eq!(m[&(2026, 11)].sessions, 2);
+    }
+
+    #[test]
+    fn month_report_layout() {
+        let log = [
+            entry("2026-10-31T09:00:00Z", Kind::Work, 1500, 1500),
+            entry("2026-11-01T09:00:00Z", Kind::Work, 3000, 3000),
+        ];
+        assert_eq!(
+            month_report(&log),
+            "2026-10  █████░░░░░     1  25m\n2026-11  ██████████     1  50m\n"
+        );
     }
 }
