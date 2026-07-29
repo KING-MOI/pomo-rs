@@ -57,3 +57,4 @@ All notable changes to this project are documented here. The format follows
 - slow start observed while testing
 - edge case observed while testing
 - edge case observed while testing
+- flaky test observed while testing
