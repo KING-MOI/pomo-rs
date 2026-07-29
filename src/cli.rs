@@ -129,7 +129,7 @@ pub struct StatsArgs {
     /// Show a calendar heatmap of the last WEEKS weeks (default 12)
     #[arg(long, value_name = "WEEKS", num_args = 0..=1, default_missing_value = "12",
           value_parser = clap::value_parser!(u32).range(1..=104),
-          conflicts_with_all = ["json", "weekdays"])]
+          conflicts_with_all = ["json", "weekdays", "months"])]
     pub heatmap: Option<u32>,
 }
 
@@ -201,5 +201,20 @@ mod tests {
     fn cli_definition_is_valid() {
         use clap::CommandFactory;
         Cli::command().debug_assert();
+    }
+
+    #[test]
+    fn stats_views_are_exclusive() {
+        for pair in [
+            ["--json", "--months"],
+            ["--heatmap", "--months"],
+            ["--weekdays", "--json"],
+        ] {
+            let args = ["pomo", "stats", pair[0], pair[1]];
+            assert!(
+                Cli::try_parse_from(args).is_err(),
+                "{pair:?} should conflict"
+            );
+        }
     }
 }
