@@ -190,4 +190,11 @@ mod tests {
         let c = Config::from_toml("log_file = \"/tmp/pomo.log\"").unwrap();
         assert_eq!(c.log_file.as_deref(), Some(Path::new("/tmp/pomo.log")));
     }
+
+    #[test]
+    fn bar_width_bounds() {
+        assert!(Config::from_toml("bar_width = 0").is_ok());
+        assert!(Config::from_toml("bar_width = 200").is_ok());
+        assert!(Config::from_toml("bar_width = 201").is_err());
+    }
 }
