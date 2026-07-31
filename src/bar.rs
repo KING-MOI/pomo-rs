@@ -6,6 +6,33 @@ pub const CLEAR_LINE: &str = "\r\x1b[2K";
 pub const HIDE_CURSOR: &str = "\x1b[?25l";
 pub const SHOW_CURSOR: &str = "\x1b[?25h";
 
+/// Bar width that fits a terminal `cols` wide next to the label and clock,
+/// kept between 10 and 60 cells so it never looks silly.
+pub fn fit_width(cols: usize, label: &str) -> usize {
+    let used = label.chars().count() + " 00:00 (paused)".len() + 2;
+    cols.saturating_sub(used).clamp(10, 60)
+}
+
+/// Terminal width from `stty size`, falling back to `$COLUMNS`.
+pub fn term_cols() -> Option<usize> {
+    let out = std::process::Command::new("stty")
+        .arg("size")
+        .stdin(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::null())
+        .output()
+        .ok()
+        .filter(|o| o.status.success());
+    out.and_then(|o| {
+        String::from_utf8(o.stdout)
+            .ok()?
+            .split_whitespace()
+            .nth(1)?
+            .parse()
+            .ok()
+    })
+    .or_else(|| std::env::var("COLUMNS").ok()?.parse().ok())
+}
+
 /// Sets the terminal window or tab title (OSC 2).
 pub fn title(s: &str) -> String {
     let clean: String = s.chars().filter(|c| !c.is_control()).collect();
@@ -138,5 +165,12 @@ mod tests {
         );
         let f = frame(Kind::Work, 0.0, Duration::from_secs(60), true, 1, true);
         assert_eq!(f, "work \x1b[90m \x1b[0m 01:00 (paused)");
+    }
+
+    #[test]
+    fn fit_width_is_clamped() {
+        assert_eq!(fit_width(80, "work"), 59);
+        assert_eq!(fit_width(20, "long break"), 10);
+        assert_eq!(fit_width(500, "work"), 60);
     }
 }

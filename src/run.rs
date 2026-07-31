@@ -34,6 +34,7 @@ struct Runner<'a, W: Write> {
     keys: Option<&'a Receiver<Key>>,
     live: bool,
     done_today: u32,
+    auto_width: Option<usize>,
     out: W,
 }
 
@@ -67,6 +68,7 @@ pub fn run(config: &Config, args: &StartArgs, log_path: &Path, state_dir: &Path)
         keys: listener.as_ref().map(|(_, rx)| rx),
         live,
         done_today: done_today(log_path),
+        auto_width: None,
         out,
     };
     if hide {
@@ -163,6 +165,9 @@ impl<W: Write> Runner<'_, W> {
 
     fn session(&mut self, kind: Kind, timer: &mut Timer) -> io::Result<Outcome> {
         timer.start(SystemTime::now());
+        if self.config.bar_width == 0 {
+            self.auto_width = bar::term_cols().map(|c| bar::fit_width(c, kind.label()));
+        }
         self.publish(kind, timer);
         if !self.live {
             write!(
@@ -258,7 +263,10 @@ impl<W: Write> Runner<'_, W> {
                 timer.progress(now),
                 timer.remaining(now),
                 !timer.is_running(),
-                c.bar_width,
+                match c.bar_width {
+                    0 => self.auto_width.unwrap_or(24),
+                    w => w,
+                },
                 c.color,
             ),
         };

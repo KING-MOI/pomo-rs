@@ -97,8 +97,8 @@ impl Config {
                 return Err(format!("{name} must be longer than zero"));
             }
         }
-        if self.bar_width == 0 {
-            return Err("bar_width must be at least 1".into());
+        if self.bar_width > 200 {
+            return Err("bar_width must be 200 or less (0 fits the terminal)".into());
         }
         if self.long_break_every == 0 {
             return Err("long_break_every must be at least 1".into());
