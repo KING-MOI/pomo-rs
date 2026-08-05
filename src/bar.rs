@@ -43,6 +43,13 @@ pub fn paint(s: &str, color: u8) -> String {
     format!("\x1b[{color}m{s}\x1b[0m")
 }
 
+/// `[####----]` style bar for terminals or fonts without block glyphs.
+pub fn ascii(progress: f64, width: usize) -> String {
+    let inner = width.saturating_sub(2);
+    let filled = ((progress.clamp(0.0, 1.0) * inner as f64).round() as usize).min(inner);
+    format!("[{}{}]", "#".repeat(filled), "-".repeat(inner - filled))
+}
+
 const PARTIAL: [char; 8] = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
 
 /// Like [`bar`] but uses eighth-block characters for a smoother edge.
@@ -172,5 +179,12 @@ mod tests {
         assert_eq!(fit_width(80, "work"), 59);
         assert_eq!(fit_width(20, "long break"), 10);
         assert_eq!(fit_width(500, "work"), 60);
+    }
+
+    #[test]
+    fn ascii_bar() {
+        assert_eq!(ascii(0.5, 6), "[##--]");
+        assert_eq!(ascii(1.0, 4), "[##]");
+        assert_eq!(ascii(0.0, 1), "[]");
     }
 }
