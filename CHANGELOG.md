@@ -28,3 +28,4 @@ All notable changes to this project are documented here. The format follows
 - considered error messages; parked for now
 - slow start observed while testing
 - double-check config defaults behavior
+- double-check ci caching behavior
