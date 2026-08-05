@@ -18,6 +18,8 @@ auto_start = true
 display = "plain"
 # cells in the bar; 0 sizes it to the terminal
 bar_width = 24
+# "smooth", "blocks" or "ascii"
+bar_style = "smooth"
 color = true
 
 # show the countdown in the terminal window title

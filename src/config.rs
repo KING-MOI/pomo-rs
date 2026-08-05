@@ -23,6 +23,7 @@ pub struct Config {
     pub auto_start: bool,
     pub display: Display,
     pub bar_width: usize,
+    pub bar_style: BarStyle,
     pub color: bool,
     /// Mirror the countdown in the terminal title.
     pub title: bool,
@@ -37,6 +38,18 @@ pub struct Config {
     /// Where finished sessions are recorded; defaults to the xdg data dir.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub log_file: Option<std::path::PathBuf>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum BarStyle {
+    /// eighth-block characters for a smooth edge
+    #[default]
+    Smooth,
+    /// whole blocks only
+    Blocks,
+    /// `[###---]`, for fonts without block glyphs
+    Ascii,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Default)]
@@ -58,6 +71,7 @@ impl Default for Config {
             auto_start: true,
             display: Display::Plain,
             bar_width: 24,
+            bar_style: BarStyle::Smooth,
             color: true,
             title: false,
             notify: Default::default(),
