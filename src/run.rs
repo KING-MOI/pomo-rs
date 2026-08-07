@@ -258,17 +258,14 @@ impl<W: Write> Runner<'_, W> {
         let c = self.config;
         let line = match c.display {
             Display::Plain => bar::plain(kind, timer.remaining(now), !timer.is_running()),
-            Display::Bar => bar::frame(
-                kind,
-                timer.progress(now),
-                timer.remaining(now),
-                !timer.is_running(),
-                match c.bar_width {
+            Display::Bar => {
+                let width = match c.bar_width {
                     0 => self.auto_width.unwrap_or(24),
                     w => w,
-                },
-                c.color,
-            ),
+                };
+                let b = bar::render(c.bar_style, timer.progress(now), width);
+                bar::frame(kind, b, timer.remaining(now), !timer.is_running(), c.color)
+            }
         };
         if c.title {
             let left = duration::clock(duration::ceil_secs(timer.remaining(now)));

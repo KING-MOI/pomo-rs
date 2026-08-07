@@ -1,3 +1,4 @@
+use crate::config::BarStyle;
 use crate::duration;
 use crate::session::Kind;
 use std::time::Duration;
@@ -77,16 +78,18 @@ pub fn plain(kind: Kind, remaining: Duration, paused: bool) -> String {
     s
 }
 
+/// Draws the bar itself in the configured style.
+pub fn render(style: BarStyle, progress: f64, width: usize) -> String {
+    match style {
+        BarStyle::Smooth => smooth(progress, width),
+        BarStyle::Blocks => bar(progress, width),
+        BarStyle::Ascii => ascii(progress, width),
+    }
+}
+
 /// One frame of the bar display: `work ████░░░░ 12:34`.
-pub fn frame(
-    kind: Kind,
-    progress: f64,
-    remaining: Duration,
-    paused: bool,
-    width: usize,
-    color: bool,
-) -> String {
-    let mut b = smooth(progress, width);
+pub fn frame(kind: Kind, bar: String, remaining: Duration, paused: bool, color: bool) -> String {
+    let mut b = bar;
     if color {
         b = paint(&b, if paused { 90 } else { kind.color() });
     }
@@ -146,13 +149,25 @@ mod tests {
 
     #[test]
     fn frame_layout() {
-        let f = frame(Kind::Work, 0.5, Duration::from_secs(90), false, 4, false);
+        let f = frame(
+            Kind::Work,
+            smooth(0.5, 4),
+            Duration::from_secs(90),
+            false,
+            false,
+        );
         assert_eq!(f, "work ██   01:30");
     }
 
     #[test]
     fn frame_colors_the_bar_only() {
-        let f = frame(Kind::ShortBreak, 1.0, Duration::ZERO, false, 2, true);
+        let f = frame(
+            Kind::ShortBreak,
+            smooth(1.0, 2),
+            Duration::ZERO,
+            false,
+            true,
+        );
         assert_eq!(f, "short break \x1b[32m██\x1b[0m 00:00");
     }
 
@@ -170,7 +185,13 @@ mod tests {
             plain(Kind::Work, Duration::from_secs(60), true),
             "work 01:00 (paused)"
         );
-        let f = frame(Kind::Work, 0.0, Duration::from_secs(60), true, 1, true);
+        let f = frame(
+            Kind::Work,
+            smooth(0.0, 1),
+            Duration::from_secs(60),
+            true,
+            true,
+        );
         assert_eq!(f, "work \x1b[90m \x1b[0m 01:00 (paused)");
     }
 
