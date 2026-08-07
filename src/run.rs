@@ -31,6 +31,7 @@ struct Runner<'a, W: Write> {
     task: Option<&'a str>,
     count: Option<u32>,
     first: Kind,
+    deadline: Option<chrono::NaiveDateTime>,
     keys: Option<&'a Receiver<Key>>,
     live: bool,
     done_today: u32,
@@ -65,6 +66,9 @@ pub fn run(config: &Config, args: &StartArgs, log_path: &Path, state_dir: &Path)
         task: args.task.as_deref(),
         count: args.count,
         first: args.first,
+        deadline: args
+            .until
+            .map(|u| crate::cli::deadline(chrono::Local::now().naive_local(), u)),
         keys: listener.as_ref().map(|(_, rx)| rx),
         live,
         done_today: done_today(log_path),
@@ -98,6 +102,13 @@ impl<W: Write> Runner<'_, W> {
     fn cycle_loop(&mut self) -> io::Result<()> {
         let mut cycle = Cycle::starting_with(self.config.long_break_every, self.first);
         loop {
+            if self
+                .deadline
+                .is_some_and(|d| chrono::Local::now().naive_local() >= d)
+            {
+                writeln!(self.out, "reached --until, stopping")?;
+                return Ok(());
+            }
             let kind = cycle.current();
             let mut timer = Timer::new(kind.length(self.config));
             let started = chrono::Local::now().fixed_offset();
