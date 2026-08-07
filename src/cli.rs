@@ -95,6 +95,10 @@ pub struct StartArgs {
     #[arg(short, long)]
     pub task: Option<String>,
 
+    /// Don't start new sessions after this time of day (HH:MM)
+    #[arg(short, long, value_parser = parse_time)]
+    pub until: Option<chrono::NaiveTime>,
+
     /// Stop after this many work sessions
     #[arg(short = 'n', long)]
     pub count: Option<u32>,
@@ -145,6 +149,21 @@ pub enum ConfigCommand {
         #[arg(short, long)]
         force: bool,
     },
+}
+
+fn parse_time(s: &str) -> Result<chrono::NaiveTime, String> {
+    chrono::NaiveTime::parse_from_str(s, "%H:%M").map_err(|_| format!("expected HH:MM, got {s:?}"))
+}
+
+/// The next moment the clock reads `until`: later today, or tomorrow if
+/// that time has already passed.
+pub fn deadline(now: chrono::NaiveDateTime, until: chrono::NaiveTime) -> chrono::NaiveDateTime {
+    let today = now.date().and_time(until);
+    if today > now {
+        today
+    } else {
+        today + chrono::Days::new(1)
+    }
 }
 
 impl StartArgs {
@@ -216,5 +235,14 @@ mod tests {
                 "{pair:?} should conflict"
             );
         }
+    }
+
+    #[test]
+    fn deadline_rolls_over_to_tomorrow() {
+        let t = |s| chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M").unwrap();
+        let five = parse_time("17:00").unwrap();
+        assert_eq!(deadline(t("2026-11-17 09:00"), five), t("2026-11-17 17:00"));
+        assert_eq!(deadline(t("2026-11-17 18:00"), five), t("2026-11-18 17:00"));
+        assert!(parse_time("5pm").is_err());
     }
 }
