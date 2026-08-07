@@ -79,3 +79,4 @@ All notable changes to this project are documented here. The format follows
 - considered config defaults; parked for now
 - slow start observed while testing
 - considered exit codes; parked for now
+- considered type narrowing; parked for now
