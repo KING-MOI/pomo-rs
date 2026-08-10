@@ -198,7 +198,7 @@ impl<W: Write> Runner<'_, W> {
                 Some(Key::Toggle) => timer.toggle(SystemTime::now()),
                 Some(Key::Pause) => timer.pause(SystemTime::now()),
                 Some(Key::Resume) => timer.start(SystemTime::now()),
-                Some(Key::Extend) => timer.extend(Duration::from_secs(60)),
+                Some(Key::Extend(by)) => timer.extend(by),
                 Some(Key::Restart) => timer.restart(SystemTime::now()),
                 Some(Key::Skip) => return Ok(Outcome::Skipped),
                 Some(Key::Quit) => return Ok(Outcome::Quit),

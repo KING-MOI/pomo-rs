@@ -2,13 +2,16 @@ use std::io::{self, IsTerminal, Read};
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
+use std::time::Duration;
+
+const MINUTE: Duration = Duration::from_secs(60);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Key {
     Toggle,
     Skip,
     Quit,
-    Extend,
+    Extend(Duration),
     Restart,
     Pause,
     Resume,
@@ -19,7 +22,7 @@ impl Key {
         match b {
             b' ' | b'p' => Some(Key::Toggle),
             b's' => Some(Key::Skip),
-            b'+' | b'=' => Some(Key::Extend),
+            b'+' | b'=' => Some(Key::Extend(MINUTE)),
             b'r' => Some(Key::Restart),
             b'q' | 3 | 4 => Some(Key::Quit),
             _ => None,
@@ -83,13 +86,17 @@ impl std::str::FromStr for Key {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Key, String> {
+        if let Some(secs) = s.strip_prefix("extend ") {
+            let secs = secs.parse().map_err(|_| format!("bad extend: {s:?}"))?;
+            return Ok(Key::Extend(Duration::from_secs(secs)));
+        }
         Ok(match s {
             "toggle" => Key::Toggle,
             "pause" => Key::Pause,
             "resume" => Key::Resume,
             "skip" => Key::Skip,
             "stop" => Key::Quit,
-            "extend" => Key::Extend,
+            "extend" => Key::Extend(MINUTE),
             "restart" => Key::Restart,
             _ => return Err(format!("unknown command: {s:?}")),
         })
@@ -107,7 +114,7 @@ mod tests {
         assert_eq!(Key::from_byte(b's'), Some(Key::Skip));
         assert_eq!(Key::from_byte(b'q'), Some(Key::Quit));
         assert_eq!(Key::from_byte(3), Some(Key::Quit));
-        assert_eq!(Key::from_byte(b'+'), Some(Key::Extend));
+        assert_eq!(Key::from_byte(b'+'), Some(Key::Extend(MINUTE)));
         assert_eq!(Key::from_byte(b'r'), Some(Key::Restart));
         assert_eq!(Key::from_byte(b'x'), None);
     }
@@ -117,5 +124,14 @@ mod tests {
         assert_eq!("pause".parse::<Key>(), Ok(Key::Pause));
         assert_eq!("stop".parse::<Key>(), Ok(Key::Quit));
         assert!("dance".parse::<Key>().is_err());
+    }
+
+    #[test]
+    fn extend_carries_seconds() {
+        assert_eq!(
+            "extend 300".parse::<Key>(),
+            Ok(Key::Extend(Duration::from_secs(300)))
+        );
+        assert!("extend soon".parse::<Key>().is_err());
     }
 }
