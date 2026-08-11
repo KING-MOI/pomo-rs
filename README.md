@@ -31,6 +31,7 @@ pomo start -t "write report"   # label sessions for stats
 pomo start -f short  # begin with a break
 pomo start --bar     # progress bar instead of a plain countdown
 pomo start -n 4      # stop after four work sessions
+pomo start -u 17:30  # don't start anything new after 17:30
 pomo stats           # focus time, streaks, last 7 days
 ```
 
@@ -143,7 +144,8 @@ From another terminal (or a hotkey, or a status bar):
 ```sh
 pomo status                       # work 12:34
 pomo status -f '{kind} {remaining}'
-pomo pause | resume | toggle | skip | stop
+pomo pause | resume | toggle | skip | stop | restart
+pomo extend 10m                   # add time to the current session
 ```
 
 `--format` understands `{kind}`, `{remaining}`, `{state}` and `{percent}` and
