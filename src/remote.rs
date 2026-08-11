@@ -127,6 +127,19 @@ pub fn format(template: &str, s: &State, now: u128) -> String {
         .replace("{percent}", &percent.to_string())
 }
 
+impl State {
+    pub fn to_json(&self, now: u128) -> String {
+        format!(
+            "{{\"kind\":\"{}\",\"remaining_secs\":{},\"length_secs\":{},\"paused\":{},\"pid\":{}}}",
+            self.kind.key(),
+            crate::duration::ceil_secs(self.remaining(now)).as_secs(),
+            self.length.as_secs(),
+            self.paused,
+            self.pid
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -198,5 +211,14 @@ mod tests {
         assert_eq!(take(&dir).as_deref(), Some("skip"));
         assert_eq!(take(&dir), None);
         fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn json_snapshot() {
+        let s = State { pid: 7, ..sample() };
+        assert_eq!(
+            s.to_json(s.at),
+            r#"{"kind":"short_break","remaining_secs":240,"length_secs":300,"paused":false,"pid":7}"#
+        );
     }
 }

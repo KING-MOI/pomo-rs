@@ -26,7 +26,7 @@ fn main() -> ExitCode {
         Command::Start(args) => start(args),
         Command::Stats(args) => stats(args),
         Command::Config(cmd) => config_cmd(cmd),
-        Command::Status { format } => status(format),
+        Command::Status { format, json } => status(format, json),
         Command::Log { limit, path } => show_log(limit, path),
         Command::Edit => edit(),
         Command::Completions { shell } => {
@@ -120,14 +120,20 @@ fn config_cmd(cmd: cli::ConfigCommand) -> Result<(), String> {
     Ok(())
 }
 
-fn status(format: Option<String>) -> Result<(), String> {
+fn status(format: Option<String>, json: bool) -> Result<(), String> {
     let Some(state) = remote::load(&paths::state_dir()) else {
-        if format.is_none() {
+        if json {
+            println!("null");
+        } else if format.is_none() {
             println!("not running");
         }
         return Ok(());
     };
     let now = remote::now_ms();
+    if json {
+        println!("{}", state.to_json(now));
+        return Ok(());
+    }
     match format {
         Some(t) => println!("{}", remote::format(&t, &state, now)),
         None => println!(

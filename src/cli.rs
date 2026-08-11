@@ -38,6 +38,10 @@ pub enum Command {
         /// Template with {kind}, {remaining}, {state} and {percent}
         #[arg(short, long)]
         format: Option<String>,
+
+        /// Print JSON (`null` when idle)
+        #[arg(long, conflicts_with = "format")]
+        json: bool,
     },
     /// Pause the running timer
     Pause,
