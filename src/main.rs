@@ -39,6 +39,8 @@ fn main() -> ExitCode {
         Command::Toggle => control("toggle"),
         Command::Skip => control("skip"),
         Command::Stop => control("stop"),
+        Command::Restart => control("restart"),
+        Command::Extend { by } => control(&format!("extend {}", by.as_secs())),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,

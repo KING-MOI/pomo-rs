@@ -49,6 +49,14 @@ pub enum Command {
     Skip,
     /// Stop the running timer
     Stop,
+    /// Restart the current session from the top
+    Restart,
+    /// Add time to the current session
+    Extend {
+        /// How much to add (default 5m)
+        #[arg(default_value = "5m", value_parser = crate::duration::parse)]
+        by: Duration,
+    },
     /// Open the config file in $EDITOR
     Edit,
     /// Print a shell completion script
