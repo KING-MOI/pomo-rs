@@ -150,6 +150,8 @@ pomo extend 10m                   # add time to the current session
 
 `--format` understands `{kind}`, `{remaining}`, `{state}` and `{percent}` and
 prints nothing when no timer is running, which keeps status bars clean.
+See [docs/status-bars.md](docs/status-bars.md) for tmux, sketchybar, waybar
+and polybar snippets.
 
 ## License
 
