@@ -80,3 +80,4 @@ All notable changes to this project are documented here. The format follows
 - slow start observed while testing
 - considered exit codes; parked for now
 - considered type narrowing; parked for now
+- follow up on type narrowing
