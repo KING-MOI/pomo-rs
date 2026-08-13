@@ -16,3 +16,4 @@ All notable changes to this project are documented here. The format follows
 - flaky test observed while testing
 - considered the macOS build; parked for now
 - double-check cleanup logic behavior
+- follow up on the macOS build
