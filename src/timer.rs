@@ -78,7 +78,7 @@ impl Timer {
     }
 
     pub fn extend(&mut self, by: Duration) {
-        self.length += by;
+        self.length = self.length.saturating_add(by);
     }
 
     pub fn length(&self) -> Duration {
@@ -169,5 +169,12 @@ mod tests {
         assert_eq!(t.remaining(t0 - 5 * S), 10 * S);
         t.pause(t0 - 5 * S);
         assert_eq!(t.remaining(t0), 10 * S);
+    }
+
+    #[test]
+    fn extend_saturates_instead_of_panicking() {
+        let mut t = Timer::new(10 * S);
+        t.extend(Duration::MAX);
+        assert_eq!(t.length(), Duration::MAX);
     }
 }
