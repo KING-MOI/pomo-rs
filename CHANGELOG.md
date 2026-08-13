@@ -30,3 +30,4 @@ All notable changes to this project are documented here. The format follows
 - double-check config defaults behavior
 - double-check ci caching behavior
 - double-check the retry path behavior
+- double-check link checker behavior
