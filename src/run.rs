@@ -60,6 +60,7 @@ pub fn run(config: &Config, args: &StartArgs, log_path: &Path, state_dir: &Path)
     let out = io::stdout();
     let live = out.is_terminal();
     let hide = config.display == Display::Bar && live;
+    remote::take(state_dir);
     let listener = keys::listen();
     let mut r = Runner {
         config,
