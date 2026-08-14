@@ -9,6 +9,7 @@ use crate::notify;
 use crate::remote::{self, State};
 use crate::session::{Cycle, Kind};
 use crate::timer::Timer;
+use std::collections::VecDeque;
 use std::io::{self, IsTerminal, Write};
 use std::path::Path;
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
@@ -36,6 +37,7 @@ struct Runner<'a, W: Write> {
     live: bool,
     done_today: u32,
     auto_width: Option<usize>,
+    queued: VecDeque<Key>,
     out: W,
 }
 
@@ -73,6 +75,7 @@ pub fn run(config: &Config, args: &StartArgs, log_path: &Path, state_dir: &Path)
         live,
         done_today: done_today(log_path),
         auto_width: None,
+        queued: VecDeque::new(),
         out,
     };
     if hide {
@@ -212,7 +215,10 @@ impl<W: Write> Runner<'_, W> {
     /// Waits up to one tick for a keypress, then checks the control file.
     /// Once stdin is closed the channel disconnects and returns instantly,
     /// so sleep in that case too rather than spinning.
-    fn next_key(&self) -> Option<Key> {
+    fn next_key(&mut self) -> Option<Key> {
+        if let Some(k) = self.queued.pop_front() {
+            return Some(k);
+        }
         let key = match self.keys.map(|rx| rx.recv_timeout(TICK)) {
             Some(Ok(k)) => Some(k),
             Some(Err(RecvTimeoutError::Timeout)) => None,
@@ -221,7 +227,13 @@ impl<W: Write> Runner<'_, W> {
                 None
             }
         };
-        key.or_else(|| remote::take(self.state_dir)?.parse().ok())
+        if key.is_some() {
+            return key;
+        }
+        let cmds = remote::take(self.state_dir);
+        self.queued
+            .extend(cmds.iter().filter_map(|c| c.parse::<Key>().ok()));
+        self.queued.pop_front()
     }
 
     /// Best effort: a read-only state dir shouldn't stop the timer.
