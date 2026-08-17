@@ -19,6 +19,8 @@ pub struct Config {
     pub long_break_every: u32,
     /// Full work sessions to aim for each day; 0 turns the goal off.
     pub daily_goal: u32,
+    /// Let work run past zero, counting up, until you move on.
+    pub overtime: bool,
     /// Roll straight into the next session instead of waiting for a key.
     pub auto_start: bool,
     pub display: Display,
@@ -68,6 +70,7 @@ impl Default for Config {
             long_break: Duration::from_secs(15 * MIN),
             long_break_every: 4,
             daily_goal: 0,
+            overtime: false,
             auto_start: true,
             display: Display::Plain,
             bar_width: 24,

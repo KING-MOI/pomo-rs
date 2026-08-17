@@ -11,6 +11,9 @@ long_break_every = 4
 # full work sessions to aim for each day (0 = no goal)
 daily_goal = 0
 
+# keep counting past zero at the end of work until you press a key
+overtime = false
+
 # start the next session right away; false waits for a keypress
 auto_start = true
 
