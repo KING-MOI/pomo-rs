@@ -39,3 +39,4 @@ All notable changes to this project are documented here. The format follows
 - double-check error messages behavior
 - follow up on release checklist
 - follow up on link checker
+- double-check release checklist behavior
