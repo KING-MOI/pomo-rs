@@ -21,6 +21,8 @@ const TICK: Duration = Duration::from_millis(250);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Outcome {
     Finished,
+    /// Finished, then kept going past zero.
+    Overtime,
     Skipped,
     Quit,
 }
@@ -119,10 +121,11 @@ impl<W: Write> Runner<'_, W> {
             let outcome = self.session(kind, &mut timer)?;
             let actual = match outcome {
                 Outcome::Finished => timer.length(),
+                Outcome::Overtime => timer.elapsed(SystemTime::now()),
                 _ => timer.elapsed(SystemTime::now()).min(timer.length()),
             };
             let word = match outcome {
-                Outcome::Finished => "done",
+                Outcome::Finished | Outcome::Overtime => "done",
                 Outcome::Skipped => "skipped",
                 Outcome::Quit => "stopped",
             };
@@ -131,7 +134,7 @@ impl<W: Write> Runner<'_, W> {
             }
             write!(self.out, "{} {word}", kind.label())?;
             let goal = self.config.daily_goal;
-            if kind == Kind::Work && outcome == Outcome::Finished {
+            if kind == Kind::Work && matches!(outcome, Outcome::Finished | Outcome::Overtime) {
                 self.done_today += 1;
                 if goal > 0 {
                     write!(self.out, " ({}/{goal} today)", self.done_today)?;
@@ -207,7 +210,31 @@ impl<W: Write> Runner<'_, W> {
             }
             self.publish(kind, timer);
         }
+        if kind == Kind::Work && self.config.overtime {
+            return self.overtime(kind, timer);
+        }
         Ok(Outcome::Finished)
+    }
+
+    /// Counts up past zero until the user moves on. Pausing doesn't make
+    /// sense here, so space and s both end the session.
+    fn overtime(&mut self, kind: Kind, timer: &Timer) -> io::Result<Outcome> {
+        self.notify(&format!("{} done, overtime running", kind.label()));
+        loop {
+            if self.live {
+                let over = timer
+                    .elapsed(SystemTime::now())
+                    .saturating_sub(timer.length());
+                let line = format!("{} +{} overtime", kind.label(), duration::clock(over));
+                write!(self.out, "{}{line}", bar::CLEAR_LINE)?;
+                self.out.flush()?;
+            }
+            match self.next_key() {
+                Some(Key::Skip | Key::Toggle | Key::Resume) => return Ok(Outcome::Overtime),
+                Some(Key::Quit) => return Ok(Outcome::Quit),
+                _ => {}
+            }
+        }
     }
 
     /// Waits up to one tick for a keypress, then checks the control file.
