@@ -52,3 +52,4 @@ All notable changes to this project are documented here. The format follows
 - follow up on cleanup logic
 - double-check type narrowing behavior
 - considered the retry path; parked for now
+- follow up on the retry path
