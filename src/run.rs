@@ -164,10 +164,7 @@ impl<W: Write> Runner<'_, W> {
                 if kind == Kind::Work && self.done_today == self.config.daily_goal {
                     msg = format!("daily goal of {} reached! {msg}", self.done_today);
                 }
-                if let Err(e) = notify::send(self.config.notify, &msg, self.config.sound.as_deref())
-                {
-                    eprintln!("pomo: notification failed: {e}");
-                }
+                self.notify(&msg);
             }
             if self.count.is_some_and(|n| cycle.completed_work() >= n) {
                 return Ok(());
@@ -235,6 +232,13 @@ impl<W: Write> Runner<'_, W> {
         self.queued
             .extend(cmds.iter().filter_map(|c| c.parse::<Key>().ok()));
         self.queued.pop_front()
+    }
+
+    fn notify(&self, msg: &str) {
+        let c = self.config;
+        if let Err(e) = notify::send(c.notify, msg, c.sound.as_deref()) {
+            eprintln!("pomo: notification failed: {e}");
+        }
     }
 
     /// Best effort: a read-only state dir shouldn't stop the timer.
