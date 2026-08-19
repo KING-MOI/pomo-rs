@@ -67,6 +67,7 @@ bar_width = 24         # 0 fits the bar to the terminal
 color = true
 title = false          # mirror the countdown in the window title
 daily_goal = 8         # sessions per day, shown in stats; 0 = off
+overtime = false       # keep counting past zero until you press space or s
 sound = "Glass"        # terminal-notifier only
 hook = "say done"      # see below
 notify = "auto"        # auto, osc9, terminal-notifier, bell, none
