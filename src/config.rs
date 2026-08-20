@@ -23,6 +23,10 @@ pub struct Config {
     pub overtime: bool,
     /// Roll straight into the next session instead of waiting for a key.
     pub auto_start: bool,
+    /// Overrides `auto_start` for breaks only, e.g. start breaks right away
+    /// but wait before going back to work.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_start_breaks: Option<bool>,
     pub display: Display,
     pub bar_width: usize,
     pub bar_style: BarStyle,
@@ -72,6 +76,7 @@ impl Default for Config {
             daily_goal: 0,
             overtime: false,
             auto_start: true,
+            auto_start_breaks: None,
             display: Display::Plain,
             bar_width: 24,
             bar_style: BarStyle::Smooth,
@@ -101,6 +106,14 @@ impl Config {
             Ok(s) => Config::from_toml(&s).map_err(|e| format!("{}: {e}", path.display())),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Config::default()),
             Err(e) => Err(format!("{}: {e}", path.display())),
+        }
+    }
+
+    /// Whether `next` should begin without waiting for a key.
+    pub fn starts_automatically(&self, next: crate::session::Kind) -> bool {
+        match next {
+            crate::session::Kind::Work => self.auto_start,
+            _ => self.auto_start_breaks.unwrap_or(self.auto_start),
         }
     }
 
@@ -213,5 +226,15 @@ mod tests {
         assert!(Config::from_toml("bar_width = 0").is_ok());
         assert!(Config::from_toml("bar_width = 200").is_ok());
         assert!(Config::from_toml("bar_width = 201").is_err());
+    }
+
+    #[test]
+    fn auto_start_can_differ_for_breaks() {
+        use crate::session::Kind;
+        let c = Config::from_toml("auto_start = false\nauto_start_breaks = true").unwrap();
+        assert!(!c.starts_automatically(Kind::Work));
+        assert!(c.starts_automatically(Kind::ShortBreak));
+        let c = Config::from_toml("auto_start = false").unwrap();
+        assert!(!c.starts_automatically(Kind::LongBreak));
     }
 }

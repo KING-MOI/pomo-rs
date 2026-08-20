@@ -172,7 +172,7 @@ impl<W: Write> Runner<'_, W> {
             if self.count.is_some_and(|n| cycle.completed_work() >= n) {
                 return Ok(());
             }
-            if !self.config.auto_start && !self.wait_for_start(next)? {
+            if !self.config.starts_automatically(next) && !self.wait_for_start(next)? {
                 return Ok(());
             }
         }
