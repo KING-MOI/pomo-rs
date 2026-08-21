@@ -111,6 +111,10 @@ pub struct StartArgs {
     #[arg(short, long, value_parser = parse_time)]
     pub until: Option<chrono::NaiveTime>,
 
+    /// Wait for a keypress before each session
+    #[arg(long)]
+    pub manual: bool,
+
     /// Stop after this many work sessions
     #[arg(short = 'n', long)]
     pub count: Option<u32>,
@@ -195,6 +199,10 @@ impl StartArgs {
         }
         if let Some(m) = self.notify {
             c.notify = m;
+        }
+        if self.manual {
+            c.auto_start = false;
+            c.auto_start_breaks = Some(false);
         }
         if self.bar {
             c.display = crate::config::Display::Bar;
