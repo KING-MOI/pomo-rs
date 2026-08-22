@@ -11,6 +11,7 @@ pub struct Timer {
     length: Duration,
     banked: Duration,
     running_since: Option<SystemTime>,
+    paused_since: Option<SystemTime>,
 }
 
 impl Timer {
@@ -19,18 +20,21 @@ impl Timer {
             length,
             banked: Duration::ZERO,
             running_since: None,
+            paused_since: None,
         }
     }
 
     pub fn start(&mut self, now: SystemTime) {
         if self.running_since.is_none() {
             self.running_since = Some(now);
+            self.paused_since = None;
         }
     }
 
     pub fn pause(&mut self, now: SystemTime) {
         if let Some(t) = self.running_since.take() {
             self.banked += now.duration_since(t).unwrap_or_default();
+            self.paused_since = Some(now);
         }
     }
 
@@ -40,6 +44,12 @@ impl Timer {
         } else {
             self.start(now);
         }
+    }
+
+    /// How long the timer has been paused, or `None` if it isn't.
+    pub fn paused_for(&self, now: SystemTime) -> Option<Duration> {
+        self.paused_since
+            .map(|t| now.duration_since(t).unwrap_or_default())
     }
 
     pub fn is_running(&self) -> bool {
@@ -176,5 +186,17 @@ mod tests {
         let mut t = Timer::new(10 * S);
         t.extend(Duration::MAX);
         assert_eq!(t.length(), Duration::MAX);
+    }
+
+    #[test]
+    fn tracks_how_long_it_has_been_paused() {
+        let t0 = SystemTime::now();
+        let mut t = Timer::new(10 * S);
+        assert_eq!(t.paused_for(t0), None);
+        t.start(t0);
+        t.pause(t0 + S);
+        assert_eq!(t.paused_for(t0 + 4 * S), Some(3 * S));
+        t.start(t0 + 5 * S);
+        assert_eq!(t.paused_for(t0 + 6 * S), None);
     }
 }
