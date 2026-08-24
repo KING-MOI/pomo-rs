@@ -19,6 +19,9 @@ pub struct Config {
     pub long_break_every: u32,
     /// Full work sessions to aim for each day; 0 turns the goal off.
     pub daily_goal: u32,
+    /// Nudge after the timer has sat paused this long; 0 turns it off.
+    #[serde(with = "crate::duration::serde")]
+    pub pause_reminder: Duration,
     /// Let work run past zero, counting up, until you move on.
     pub overtime: bool,
     /// Roll straight into the next session instead of waiting for a key.
@@ -74,6 +77,7 @@ impl Default for Config {
             long_break: Duration::from_secs(15 * MIN),
             long_break_every: 4,
             daily_goal: 0,
+            pause_reminder: Duration::ZERO,
             overtime: false,
             auto_start: true,
             auto_start_breaks: None,
@@ -236,5 +240,12 @@ mod tests {
         assert!(c.starts_automatically(Kind::ShortBreak));
         let c = Config::from_toml("auto_start = false").unwrap();
         assert!(!c.starts_automatically(Kind::LongBreak));
+    }
+
+    #[test]
+    fn pause_reminder_defaults_off() {
+        assert!(Config::default().pause_reminder.is_zero());
+        let c = Config::from_toml("pause_reminder = \"10m\"").unwrap();
+        assert_eq!(c.pause_reminder, Duration::from_secs(600));
     }
 }

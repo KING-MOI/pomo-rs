@@ -11,6 +11,9 @@ long_break_every = 4
 # full work sessions to aim for each day (0 = no goal)
 daily_goal = 0
 
+# notify if the timer stays paused this long ("0" = never)
+pause_reminder = "0s"
+
 # keep counting past zero at the end of work until you press a key
 overtime = false
 
