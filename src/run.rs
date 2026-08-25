@@ -196,8 +196,10 @@ impl<W: Write> Runner<'_, W> {
                 None => writeln!(self.out)?,
             }
         }
+        let mut reminded = false;
         while !timer.is_done(SystemTime::now()) {
             self.draw(kind, timer)?;
+            self.remind_if_paused(kind, timer, &mut reminded);
             match self.next_key() {
                 Some(Key::Toggle) => timer.toggle(SystemTime::now()),
                 Some(Key::Pause) => timer.pause(SystemTime::now()),
@@ -259,6 +261,21 @@ impl<W: Write> Runner<'_, W> {
         self.queued
             .extend(cmds.iter().filter_map(|c| c.parse::<Key>().ok()));
         self.queued.pop_front()
+    }
+
+    /// Sends one nudge per pause once it has lasted `pause_reminder`.
+    fn remind_if_paused(&self, kind: Kind, timer: &Timer, reminded: &mut bool) {
+        let limit = self.config.pause_reminder;
+        let now = SystemTime::now();
+        match timer.paused_for(now) {
+            None => *reminded = false,
+            Some(p) if !limit.is_zero() && p >= limit && !*reminded => {
+                let left = duration::clock(duration::ceil_secs(timer.remaining(now)));
+                self.notify(&format!("{} still paused, {left} left", kind.label()));
+                *reminded = true;
+            }
+            Some(_) => {}
+        }
     }
 
     fn notify(&self, msg: &str) {
