@@ -32,6 +32,7 @@ pomo start -f short  # begin with a break
 pomo start --bar     # progress bar instead of a plain countdown
 pomo start -n 4      # stop after four work sessions
 pomo start -u 17:30  # don't start anything new after 17:30
+pomo start --manual  # wait for a keypress before each session
 pomo stats           # focus time, streaks, last 7 days
 ```
 
@@ -62,6 +63,8 @@ short_break = "5m"
 long_break = "15m"
 long_break_every = 4
 auto_start = true
+auto_start_breaks = true   # optional: breaks start even when auto_start is off
+pause_reminder = "10m"     # nudge if paused this long; "0s" = off
 display = "bar"        # or "plain"
 bar_width = 24         # 0 fits the bar to the terminal
 color = true
