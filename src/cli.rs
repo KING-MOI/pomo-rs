@@ -138,6 +138,10 @@ pub struct StatsArgs {
     #[arg(long)]
     pub since: Option<chrono::NaiveDate>,
 
+    /// Only count sessions on or before this date (YYYY-MM-DD)
+    #[arg(long)]
+    pub until: Option<chrono::NaiveDate>,
+
     /// Show average focus per weekday instead
     #[arg(long, conflicts_with = "json")]
     pub weekdays: bool,

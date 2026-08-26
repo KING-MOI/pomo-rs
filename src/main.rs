@@ -86,6 +86,9 @@ fn stats(args: cli::StatsArgs) -> Result<(), String> {
     if let Some(d) = args.since {
         entries.retain(|e| e.start.date_naive() >= d);
     }
+    if let Some(d) = args.until {
+        entries.retain(|e| e.start.date_naive() <= d);
+    }
     let today = chrono::Local::now().date_naive();
     if let Some(weeks) = args.heatmap {
         print!("{}", stats::heatmap(&entries, today, weeks));
