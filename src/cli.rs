@@ -134,12 +134,12 @@ pub struct StatsArgs {
     #[arg(short, long)]
     pub task: Option<String>,
 
-    /// Only count sessions on or after this date (YYYY-MM-DD)
-    #[arg(long)]
+    /// Only count sessions on or after this date (YYYY-MM-DD, or "today")
+    #[arg(long, value_parser = parse_date)]
     pub since: Option<chrono::NaiveDate>,
 
-    /// Only count sessions on or before this date (YYYY-MM-DD)
-    #[arg(long)]
+    /// Only count sessions on or before this date (YYYY-MM-DD, or "today")
+    #[arg(long, value_parser = parse_date)]
     pub until: Option<chrono::NaiveDate>,
 
     /// Show average focus per weekday instead
@@ -169,6 +169,24 @@ pub enum ConfigCommand {
         #[arg(short, long)]
         force: bool,
     },
+}
+
+/// A date for stats filters: `YYYY-MM-DD`, `today`, `yesterday` or `Nd`
+/// for N days ago.
+fn parse_date(s: &str) -> Result<chrono::NaiveDate, String> {
+    let today = chrono::Local::now().date_naive();
+    match s {
+        "today" => return Ok(today),
+        "yesterday" => return Ok(today - chrono::Days::new(1)),
+        _ => {}
+    }
+    if let Some(n) = s.strip_suffix('d').and_then(|n| n.parse::<u64>().ok()) {
+        return today
+            .checked_sub_days(chrono::Days::new(n))
+            .ok_or_else(|| format!("{s:?} is too far back"));
+    }
+    s.parse()
+        .map_err(|_| format!("expected YYYY-MM-DD, today, yesterday or Nd, got {s:?}"))
 }
 
 fn parse_time(s: &str) -> Result<chrono::NaiveTime, String> {
@@ -268,5 +286,14 @@ mod tests {
         assert_eq!(deadline(t("2026-11-17 09:00"), five), t("2026-11-17 17:00"));
         assert_eq!(deadline(t("2026-11-17 18:00"), five), t("2026-11-18 17:00"));
         assert!(parse_time("5pm").is_err());
+    }
+
+    #[test]
+    fn relative_dates() {
+        let today = chrono::Local::now().date_naive();
+        assert_eq!(parse_date("today"), Ok(today));
+        assert_eq!(parse_date("7d"), Ok(today - chrono::Days::new(7)));
+        assert_eq!(parse_date("2026-01-02"), Ok("2026-01-02".parse().unwrap()));
+        assert!(parse_date("last week").is_err());
     }
 }
