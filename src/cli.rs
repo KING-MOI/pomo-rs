@@ -32,6 +32,10 @@ pub enum Command {
         /// Print the log file's path instead
         #[arg(long)]
         path: bool,
+
+        /// Only show sessions with this task label
+        #[arg(short, long)]
+        task: Option<String>,
     },
     /// Show what the running timer is doing
     Status {
