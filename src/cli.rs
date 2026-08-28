@@ -36,6 +36,10 @@ pub enum Command {
         /// Only show sessions with this task label
         #[arg(short, long)]
         task: Option<String>,
+
+        /// Print CSV with a header row
+        #[arg(long)]
+        csv: bool,
     },
     /// Show what the running timer is doing
     Status {

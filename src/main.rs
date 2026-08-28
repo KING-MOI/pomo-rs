@@ -27,7 +27,12 @@ fn main() -> ExitCode {
         Command::Stats(args) => stats(args),
         Command::Config(cmd) => config_cmd(cmd),
         Command::Status { format, json } => status(format, json),
-        Command::Log { limit, path, task } => show_log(limit, path, task),
+        Command::Log {
+            limit,
+            path,
+            task,
+            csv,
+        } => show_log(limit, path, task, csv),
         Command::Edit => edit(),
         Command::Completions { shell } => {
             use clap::CommandFactory;
@@ -155,7 +160,7 @@ fn control(command: &str) -> Result<(), String> {
     remote::send(&dir, command).map_err(|e| e.to_string())
 }
 
-fn show_log(limit: usize, path: bool, task: Option<String>) -> Result<(), String> {
+fn show_log(limit: usize, path: bool, task: Option<String>, csv: bool) -> Result<(), String> {
     if path {
         let config = Config::load(&paths::config_file())?;
         println!("{}", paths::log_file(config.log_file.as_deref()).display());
@@ -165,8 +170,11 @@ fn show_log(limit: usize, path: bool, task: Option<String>) -> Result<(), String
     if let Some(t) = &task {
         entries.retain(|e| e.task.as_ref() == Some(t));
     }
+    if csv {
+        println!("{}", log::CSV_HEADER);
+    }
     for e in &entries[entries.len().saturating_sub(limit)..] {
-        println!("{}", e.pretty());
+        println!("{}", if csv { e.csv() } else { e.pretty() });
     }
     Ok(())
 }

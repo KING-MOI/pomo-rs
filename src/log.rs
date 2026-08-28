@@ -77,6 +77,28 @@ impl Entry {
     }
 }
 
+impl Entry {
+    /// A CSV row: start, kind, planned and actual seconds, completed, task.
+    pub fn csv(&self) -> String {
+        let task = self.task.as_deref().unwrap_or("");
+        let task = if task.contains([',', '"']) {
+            format!("\"{}\"", task.replace('"', "\"\""))
+        } else {
+            task.to_string()
+        };
+        format!(
+            "{},{},{},{},{},{task}",
+            self.start.to_rfc3339_opts(SecondsFormat::Secs, false),
+            self.kind.key(),
+            round_secs(self.planned),
+            round_secs(self.actual),
+            self.completed()
+        )
+    }
+}
+
+pub const CSV_HEADER: &str = "start,kind,planned_secs,actual_secs,completed,task";
+
 fn round_secs(d: Duration) -> u64 {
     (d.as_millis() as u64 + 500) / 1000
 }
@@ -231,5 +253,22 @@ mod tests {
         e.actual = Duration::from_millis(959);
         e.planned = Duration::from_millis(1499);
         assert!(e.to_line().ends_with("\t1\t1"));
+    }
+
+    #[test]
+    fn csv_quotes_awkward_tasks() {
+        assert_eq!(
+            sample().csv(),
+            "2026-11-17T09:00:00+05:30,work,1500,1500,true,"
+        );
+        let e = Entry {
+            task: Some("say \"hi\", twice".into()),
+            ..sample()
+        };
+        assert!(
+            e.csv().ends_with(",true,\"say \"\"hi\"\", twice\""),
+            "{}",
+            e.csv()
+        );
     }
 }
