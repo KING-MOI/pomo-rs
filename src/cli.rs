@@ -24,23 +24,7 @@ pub enum Command {
     /// Show focus time, streaks and a per-day summary
     Stats(StatsArgs),
     /// List recent sessions
-    Log {
-        /// How many sessions to show
-        #[arg(short = 'n', long, default_value_t = 10)]
-        limit: usize,
-
-        /// Print the log file's path instead
-        #[arg(long)]
-        path: bool,
-
-        /// Only show sessions with this task label
-        #[arg(short, long)]
-        task: Option<String>,
-
-        /// Print CSV with a header row
-        #[arg(long)]
-        csv: bool,
-    },
+    Log(LogArgs),
     /// Show what the running timer is doing
     Status {
         /// Template with {kind}, {remaining}, {state} and {percent}
@@ -126,6 +110,25 @@ pub struct StartArgs {
     /// Stop after this many work sessions
     #[arg(short = 'n', long)]
     pub count: Option<u32>,
+}
+
+#[derive(Args)]
+pub struct LogArgs {
+    /// How many sessions to show (0 for all)
+    #[arg(short = 'n', long, default_value_t = 10)]
+    pub limit: usize,
+
+    /// Print the log file's path instead
+    #[arg(long)]
+    pub path: bool,
+
+    /// Only show sessions with this task label
+    #[arg(short, long)]
+    pub task: Option<String>,
+
+    /// Print CSV with a header row
+    #[arg(long)]
+    pub csv: bool,
 }
 
 #[derive(Args)]
