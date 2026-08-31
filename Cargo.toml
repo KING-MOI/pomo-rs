@@ -6,6 +6,10 @@ rust-version = "1.88"
 description = "A minimal pomodoro timer for the terminal"
 license = "MIT"
 authors = ["Aditya Verma"]
+repository = "https://github.com/OWNER/pomo-rs"
+readme = "README.md"
+keywords = ["pomodoro", "timer", "cli", "productivity", "focus"]
+categories = ["command-line-utilities"]
 
 [[bin]]
 name = "pomo"
