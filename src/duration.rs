@@ -1,3 +1,5 @@
+//! Parsing and formatting of session lengths: `25`, `25m`, `1h30m`, `90s`.
+
 use std::time::Duration;
 
 pub fn parse(s: &str) -> Result<Duration, String> {
