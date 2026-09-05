@@ -1,3 +1,5 @@
+//! The pausable countdown at the heart of a session.
+
 use std::time::{Duration, SystemTime};
 
 /// A countdown that can be paused and resumed. Every method takes `now`
