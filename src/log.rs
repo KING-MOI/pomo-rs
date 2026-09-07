@@ -1,3 +1,8 @@
+//! The append-only session log.
+//!
+//! One line per session, tab separated:
+//! `start<TAB>kind<TAB>planned_secs<TAB>actual_secs[<TAB>task]`.
+
 use crate::session::Kind;
 use chrono::{DateTime, FixedOffset, SecondsFormat};
 use std::fs::{self, OpenOptions};
