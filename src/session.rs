@@ -1,3 +1,5 @@
+//! Session kinds and the work / short break / long break rotation.
+
 use crate::config::Config;
 use std::time::Duration;
 
