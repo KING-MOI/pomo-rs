@@ -1,3 +1,5 @@
+//! Turns the session log into totals, streaks and reports.
+
 use crate::duration::human;
 use crate::log::Entry;
 use crate::session::Kind;
