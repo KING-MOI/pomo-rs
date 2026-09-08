@@ -1,3 +1,7 @@
+//! Talking to a running timer from another process via files in the
+//! state directory: a `state` snapshot it publishes and a `control` queue
+//! it reads.
+
 use crate::session::Kind;
 use std::fs;
 use std::io;
