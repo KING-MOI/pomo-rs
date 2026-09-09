@@ -1,3 +1,5 @@
+//! End-of-session notifications.
+
 use serde::{Deserialize, Serialize};
 use std::io::{self, IsTerminal, Write};
 use std::process::{Command, Stdio};
