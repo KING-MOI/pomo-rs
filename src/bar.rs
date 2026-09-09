@@ -1,3 +1,5 @@
+//! Everything that draws: frames, progress bars and escape sequences.
+
 use crate::config::BarStyle;
 use crate::duration;
 use crate::session::Kind;
