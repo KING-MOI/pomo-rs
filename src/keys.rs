@@ -1,3 +1,5 @@
+//! Single-key controls read from a raw-mode terminal.
+
 use std::io::{self, IsTerminal, Read};
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{self, Receiver};
