@@ -1,3 +1,5 @@
+//! Where pomo keeps its files, following the XDG base directory spec.
+
 use std::env;
 use std::path::PathBuf;
 
