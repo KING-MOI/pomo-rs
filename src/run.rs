@@ -1,3 +1,5 @@
+//! The interactive loop behind `pomo start`.
+
 use crate::bar;
 use crate::cli::StartArgs;
 use crate::config::{Config, Display};
