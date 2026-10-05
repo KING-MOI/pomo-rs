@@ -1,3 +1,5 @@
+//! User hook commands run after each session.
+
 use crate::session::Kind;
 use std::process::{Command, Stdio};
 use std::time::Duration;
