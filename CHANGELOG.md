@@ -94,3 +94,4 @@ All notable changes to this project are documented here. The format follows
 - cache miss observed while testing
 - cache miss observed while testing
 - considered cleanup logic; parked for now
+- double-check cleanup logic behavior
