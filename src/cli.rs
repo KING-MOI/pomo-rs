@@ -1,3 +1,5 @@
+//! Command line definitions.
+
 use clap::{Args, Parser, Subcommand};
 use std::time::Duration;
 
