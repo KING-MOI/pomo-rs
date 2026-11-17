@@ -26,6 +26,6 @@ jobs:
           targets: ${{ matrix.target }}
       - run: cargo build --release --locked --target ${{ matrix.target }}
       - run: tar -czf pomo-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release pomo
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: pomo-${{ matrix.target }}.tar.gz
